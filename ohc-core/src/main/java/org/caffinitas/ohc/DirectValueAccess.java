@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
  * returned by {@link #buffer()}.
  * </p>
  */
-public interface DirectValueAccess extends Closeable
-{
+public interface DirectValueAccess extends Closeable {
     ByteBuffer buffer();
 }

@@ -19,43 +19,36 @@ import java.lang.reflect.Field;
 
 import sun.misc.Unsafe;
 
-public final class UnsafeAllocator implements IAllocator
-{
+@SuppressWarnings("restriction")
+public final class UnsafeAllocator implements IAllocator {
     static final Unsafe unsafe;
 
-    static
-    {
-        try
-        {
+    static {
+        try {
             Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
             unsafe = (sun.misc.Unsafe) field.get(null);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new AssertionError(e);
         }
     }
 
-    public long allocate(long size)
-    {
-        try
-        {
+    @Override
+    public long allocate(long size) {
+        try {
             return unsafe.allocateMemory(size);
-        }
-        catch (OutOfMemoryError oom)
-        {
+        } catch (OutOfMemoryError oom) {
             return 0L;
         }
     }
 
-    public void free(long peer)
-    {
+    @Override
+    public void free(long peer) {
         unsafe.freeMemory(peer);
     }
 
-    public long getTotalAllocated()
-    {
+    @Override
+    public long getTotalAllocated() {
         return -1L;
     }
 }

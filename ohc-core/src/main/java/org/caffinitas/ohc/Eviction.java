@@ -15,9 +15,6 @@
  */
 package org.caffinitas.ohc;
 
-public enum Eviction
-{
-    LRU,
-    W_TINY_LFU,
-    NONE
+public enum Eviction {
+    LRU, W_TINY_LFU, NONE
 }

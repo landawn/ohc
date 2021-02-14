@@ -15,8 +15,7 @@
  */
 package org.caffinitas.ohc;
 
-public enum HashAlgorithm
-{
+public enum HashAlgorithm {
     MURMUR3,
 
     CRC32,

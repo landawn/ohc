@@ -20,10 +20,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
-final class Util
-{
+final class Util {
 
-// Hash entries
+    // Hash entries
 
     // offset of LRU replacement strategy next pointer (8 bytes, long)
     static final long ENTRY_OFF_LRU_NEXT = 0;
@@ -56,17 +55,17 @@ final class Util
     // and together and at the end of the header because
     // org.caffinitas.ohc.linked.OHCacheImpl.(de)serializeEntry relies on it!
 
-// Window Tiny-LFU generations
+    // Window Tiny-LFU generations
 
     static final int GEN_EDEN = 0;
     static final int GEN_MAIN = 1;
 
-// Hash bucket-table
+    // Hash bucket-table
 
     // total memory required for a hash-partition
     static final long BUCKET_ENTRY_LEN = 8;
 
-// Compressed entries header
+    // Compressed entries header
 
     // 'OHCC'
     static final int HEADER_COMPRESSED = 0x4f484343;
@@ -81,7 +80,7 @@ final class Util
     // 'OHCK' reversed
     static final int HEADER_KEYS_WRONG = 0x4b43484f;
 
-// sentinel values
+    // sentinel values
 
     static final int SENTINEL_NOT_PRESENT = 0;
     static final int SENTINEL_LOADING = 1;
@@ -89,29 +88,24 @@ final class Util
     static final int SENTINEL_TEMPORARY_FAILURE = 3;
     static final int SENTINEL_PERMANENT_FAILURE = 4;
 
-    static long roundUpTo8(long val)
-    {
+    static long roundUpTo8(long val) {
         long rem = val & 7;
         if (rem != 0)
             val += 8L - rem;
         return val;
     }
 
-    static long allocLen(long keyLen, long valueLen)
-    {
+    static long allocLen(long keyLen, long valueLen) {
         return ENTRY_OFF_DATA + roundUpTo8(keyLen) + valueLen;
     }
 
-    static void writeFully(WritableByteChannel channel, ByteBuffer buffer) throws IOException
-    {
+    static void writeFully(WritableByteChannel channel, ByteBuffer buffer) throws IOException {
         while (buffer.remaining() > 0)
             channel.write(buffer);
     }
 
-    static boolean readFully(ReadableByteChannel channel, ByteBuffer buffer) throws IOException
-    {
-        while (buffer.remaining() > 0)
-        {
+    static boolean readFully(ReadableByteChannel channel, ByteBuffer buffer) throws IOException {
+        while (buffer.remaining() > 0) {
             int rd = channel.read(buffer);
             if (rd == -1)
                 return false;
@@ -119,18 +113,14 @@ final class Util
         return true;
     }
 
-    static int bitNum(long val)
-    {
+    static int bitNum(long val) {
         int bit = 0;
         for (; val != 0L; bit++)
             val >>>= 1;
         return bit;
     }
 
-    static long roundUpToPowerOf2(long number, long max)
-    {
-        return number >= max
-               ? max
-               : (number > 1) ? Long.highestOneBit((number - 1) << 1) : 1;
+    static long roundUpToPowerOf2(long number, long max) {
+        return number >= max ? max : (number > 1) ? Long.highestOneBit((number - 1) << 1) : 1;
     }
 }

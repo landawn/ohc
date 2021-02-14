@@ -9,22 +9,18 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
-public class OHCacheBuilderTest
-{
+public class OHCacheBuilderTest {
     @AfterMethod
-    public void clearProperties()
-    {
-        for (Object k : new HashSet(System.getProperties().keySet()))
-        {
-            String key = (String)k;
+    public void clearProperties() {
+        for (Object k : new HashSet(System.getProperties().keySet())) {
+            String key = (String) k;
             if (key.startsWith("org.caffinitas.ohc."))
                 System.getProperties().remove(key);
         }
     }
 
     @Test
-    public void testHashTableSize() throws Exception
-    {
+    public void testHashTableSize() throws Exception {
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
         Assert.assertEquals(builder.getHashTableSize(), 8192);
         builder.hashTableSize(12345);
@@ -36,8 +32,7 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testChunkSize() throws Exception
-    {
+    public void testChunkSize() throws Exception {
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
         Assert.assertEquals(builder.getChunkSize(), 0);
         builder.chunkSize(12345);
@@ -49,8 +44,7 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testCapacity() throws Exception
-    {
+    public void testCapacity() throws Exception {
         int cpus = Runtime.getRuntime().availableProcessors();
 
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
@@ -64,8 +58,7 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testSegmentCount() throws Exception
-    {
+    public void testSegmentCount() throws Exception {
         int cpus = Runtime.getRuntime().availableProcessors();
         int segments = cpus * 2;
         while (Integer.bitCount(segments) != 1)
@@ -82,8 +75,7 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testLoadFactor() throws Exception
-    {
+    public void testLoadFactor() throws Exception {
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
         Assert.assertEquals(builder.getLoadFactor(), .75f);
         builder.loadFactor(12345);
@@ -95,8 +87,7 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testMaxEntrySize() throws Exception
-    {
+    public void testMaxEntrySize() throws Exception {
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
         Assert.assertEquals(builder.getMaxEntrySize(), 0L);
         builder.maxEntrySize(12345);
@@ -108,8 +99,7 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testThrowOOME() throws Exception
-    {
+    public void testThrowOOME() throws Exception {
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
         Assert.assertFalse(builder.isThrowOOME());
         builder.throwOOME(true);
@@ -121,8 +111,7 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testExecutorService() throws Exception
-    {
+    public void testExecutorService() throws Exception {
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
         Assert.assertNull(builder.getExecutorService());
 
@@ -133,25 +122,20 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testKeySerializer() throws Exception
-    {
+    public void testKeySerializer() throws Exception {
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
         Assert.assertNull(builder.getKeySerializer());
 
-        CacheSerializer<String> inst = new CacheSerializer<String>()
-        {
-            public void serialize(String s, ByteBuffer out)
-            {
+        CacheSerializer<String> inst = new CacheSerializer<String>() {
+            public void serialize(String s, ByteBuffer out) {
 
             }
 
-            public String deserialize(ByteBuffer in)
-            {
+            public String deserialize(ByteBuffer in) {
                 return null;
             }
 
-            public int serializedSize(String s)
-            {
+            public int serializedSize(String s) {
                 return 0;
             }
         };
@@ -160,25 +144,20 @@ public class OHCacheBuilderTest
     }
 
     @Test
-    public void testValueSerializer() throws Exception
-    {
+    public void testValueSerializer() throws Exception {
         OHCacheBuilder<String, String> builder = OHCacheBuilder.newBuilder();
         Assert.assertNull(builder.getValueSerializer());
 
-        CacheSerializer<String> inst = new CacheSerializer<String>()
-        {
-            public void serialize(String s, ByteBuffer out)
-            {
+        CacheSerializer<String> inst = new CacheSerializer<String>() {
+            public void serialize(String s, ByteBuffer out) {
 
             }
 
-            public String deserialize(ByteBuffer in)
-            {
+            public String deserialize(ByteBuffer in) {
                 return null;
             }
 
-            public int serializedSize(String s)
-            {
+            public int serializedSize(String s) {
                 return 0;
             }
         };

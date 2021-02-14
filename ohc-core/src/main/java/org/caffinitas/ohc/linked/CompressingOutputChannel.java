@@ -15,17 +15,16 @@
  */
 package org.caffinitas.ohc.linked;
 
+import static org.caffinitas.ohc.linked.Util.HEADER_COMPRESSED;
+import static org.caffinitas.ohc.linked.Util.writeFully;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 import org.xerial.snappy.Snappy;
 
-import static org.caffinitas.ohc.linked.Util.HEADER_COMPRESSED;
-import static org.caffinitas.ohc.linked.Util.writeFully;
-
-final class CompressingOutputChannel implements WritableByteChannel
-{
+final class CompressingOutputChannel implements WritableByteChannel {
     private final WritableByteChannel delegate;
     private final long bufferAddress;
     private final int uncompressedChunkSize;
@@ -36,8 +35,7 @@ final class CompressingOutputChannel implements WritableByteChannel
      * @param delegate              channel to write to
      * @param uncompressedChunkSize chunk size of uncompressed that data that can be compressed in one iteration
      */
-    CompressingOutputChannel(WritableByteChannel delegate, int uncompressedChunkSize) throws IOException
-    {
+    CompressingOutputChannel(WritableByteChannel delegate, int uncompressedChunkSize) throws IOException {
         this.delegate = delegate;
         int maxCLen = Snappy.maxCompressedLength(uncompressedChunkSize);
         int bufferCapacity = 4 + maxCLen;
@@ -54,33 +52,35 @@ final class CompressingOutputChannel implements WritableByteChannel
         buffer.clear();
     }
 
-    public void close()
-    {
-        if (buffer == null)
+    @Override
+    public void close() {
+        if (buffer == null) {
             return;
+        }
 
         this.buffer = null;
-        if (!closed)
+        if (!closed) {
             Uns.free(bufferAddress);
+        }
         closed = true;
     }
 
-    protected void finalize() throws Throwable
-    {
-        if (!closed)
+    @Override
+    protected void finalize() throws Throwable {
+        if (!closed) {
             Uns.free(bufferAddress);
+        }
         super.finalize();
     }
 
-    public int write(ByteBuffer src) throws IOException
-    {
+    @Override
+    public int write(ByteBuffer src) throws IOException {
         int sz = src.remaining();
 
         ByteBuffer s = src.duplicate();
         src.position(src.position() + sz);
 
-        while (sz > 0)
-        {
+        while (sz > 0) {
             int chunkSize = sz > uncompressedChunkSize ? uncompressedChunkSize : sz;
 
             // TODO add output buffering ?
@@ -103,8 +103,8 @@ final class CompressingOutputChannel implements WritableByteChannel
         return sz;
     }
 
-    public boolean isOpen()
-    {
+    @Override
+    public boolean isOpen() {
         return buffer != null;
     }
 }

@@ -26,22 +26,19 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
-public class KeyBufferTest
-{
+public class KeyBufferTest {
     @AfterMethod(alwaysRun = true)
-    public void deinit()
-    {
+    public void deinit() {
         Uns.clearUnsDebugForTest();
     }
 
     @Test
-    public void testHashFinish() throws Exception
-    {
+    public void testHashFinish() throws Exception {
         byte[] ref = TestUtils.randomBytes(10);
         ByteBuffer buf = ByteBuffer.allocate(12);
-        buf.put((byte)(42 & 0xff));
+        buf.put((byte) (42 & 0xff));
         buf.put(ref);
-        buf.put((byte)(0xf0 & 0xff));
+        buf.put((byte) (0xf0 & 0xff));
         buf.flip();
         KeyBuffer out = new KeyBuffer(buf).finish(org.caffinitas.ohc.chunked.Hasher.create(HashAlgorithm.MURMUR3));
 
@@ -54,13 +51,12 @@ public class KeyBufferTest
     }
 
     @Test(dependsOnMethods = "testHashFinish")
-    public void testHashFinish16() throws Exception
-    {
+    public void testHashFinish16() throws Exception {
         byte[] ref = TestUtils.randomBytes(14);
         ByteBuffer buf = ByteBuffer.allocate(16);
-        buf.put((byte)(42 & 0xff));
+        buf.put((byte) (42 & 0xff));
         buf.put(ref);
-        buf.put((byte)(0xf0 & 0xff));
+        buf.put((byte) (0xf0 & 0xff));
         buf.flip();
         KeyBuffer out = new KeyBuffer(buf).finish(org.caffinitas.ohc.chunked.Hasher.create(HashAlgorithm.MURMUR3));
 
@@ -73,12 +69,9 @@ public class KeyBufferTest
     }
 
     @Test(dependsOnMethods = "testHashFinish16")
-    public void testHashRandom() throws Exception
-    {
-        for (int i = 1; i < 4100; i++)
-        {
-            for (int j = 0; j < 10; j++)
-            {
+    public void testHashRandom() throws Exception {
+        for (int i = 1; i < 4100; i++) {
+            for (int j = 0; j < 10; j++) {
                 byte[] ref = TestUtils.randomBytes(i);
                 ByteBuffer buf = ByteBuffer.allocate(i);
                 buf.put(ref);

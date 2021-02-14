@@ -18,13 +18,11 @@ package org.caffinitas.ohc.linked;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class UtilTest
-{
+public class UtilTest {
     static final long BIG = 2L << 40;
 
     @Test
-    public void testRoundUp8()
-    {
+    public void testRoundUp8() {
         Assert.assertEquals(Util.roundUpTo8(0), 0);
         Assert.assertEquals(Util.roundUpTo8(1), 8);
         Assert.assertEquals(Util.roundUpTo8(2), 8);
@@ -41,8 +39,7 @@ public class UtilTest
     }
 
     @Test
-    public void testBitNum()
-    {
+    public void testBitNum() {
         Assert.assertEquals(Util.bitNum(0), 0);
         Assert.assertEquals(Util.bitNum(1), 1);
         Assert.assertEquals(Util.bitNum(2), 2);

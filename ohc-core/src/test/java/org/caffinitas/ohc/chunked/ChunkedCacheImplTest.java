@@ -41,37 +41,31 @@ import static org.testng.Assert.assertTrue;
 
 // This unit test uses the production cache implementation and an independent OHCache implementation used to
 // cross-check the production implementation.
-public class ChunkedCacheImplTest
-{
+public class ChunkedCacheImplTest {
     @AfterMethod(alwaysRun = true)
-    public void deinit()
-    {
+    public void deinit() {
         Uns.clearUnsDebugForTest();
     }
 
-    static OHCache<Integer, String> cache()
-    {
+    static OHCache<Integer, String> cache() {
         return cache(256);
     }
 
-    static OHCache<Integer, String> cache(long capacity)
-    {
+    static OHCache<Integer, String> cache(long capacity) {
         return cache(capacity, -1);
     }
 
-    static OHCache<Integer, String> cache(long capacity, int hashTableSize)
-    {
+    static OHCache<Integer, String> cache(long capacity, int hashTableSize) {
         return cache(capacity, hashTableSize, -1, -1);
     }
 
-    static OHCache<Integer, String> cache(long capacity, int hashTableSize, int segments, long maxEntrySize)
-    {
-        OHCacheBuilder<Integer, String> builder = OHCacheBuilder.<Integer, String>newBuilder()
-                                                                .segmentCount(16)
-                                                                .keySerializer(TestUtils.intSerializer)
-                                                                .valueSerializer(TestUtils.stringSerializer)
-                                                                .chunkSize(65536)
-                                                                .capacity(capacity * TestUtils.ONE_MB);
+    static OHCache<Integer, String> cache(long capacity, int hashTableSize, int segments, long maxEntrySize) {
+        OHCacheBuilder<Integer, String> builder = OHCacheBuilder.<Integer, String> newBuilder()
+                .segmentCount(16)
+                .keySerializer(TestUtils.intSerializer)
+                .valueSerializer(TestUtils.stringSerializer)
+                .chunkSize(65536)
+                .capacity(capacity * TestUtils.ONE_MB);
         if (hashTableSize > 0)
             builder.hashTableSize(hashTableSize);
         if (segments > 0)
@@ -86,46 +80,30 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testBufferRealloc() throws IOException, InterruptedException
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
-            String strings[] = {
-                               stringWithLength(1024),
-                               stringWithLength(2048),
-                               stringWithLength(3072),
-                               stringWithLength(4096),
-                               stringWithLength(5120),
-                               stringWithLength(8192),
-                               stringWithLength(12288),
-                               stringWithLength(16384),
-            };
-            for (int i = 0; i < strings.length; i++)
-            {
+    public void testBufferRealloc() throws IOException, InterruptedException {
+        try (OHCache<Integer, String> cache = cache()) {
+            String strings[] = { stringWithLength(1024), stringWithLength(2048), stringWithLength(3072), stringWithLength(4096), stringWithLength(5120),
+                    stringWithLength(8192), stringWithLength(12288), stringWithLength(16384), };
+            for (int i = 0; i < strings.length; i++) {
                 cache.put(i, strings[i]);
             }
-            for (int i = 0; i < strings.length; i++)
-            {
+            for (int i = 0; i < strings.length; i++) {
                 assertEquals(strings[i], cache.get(i));
             }
         }
     }
 
-    private static String stringWithLength(int len)
-    {
+    private static String stringWithLength(int len) {
         StringBuilder sb = new StringBuilder(len);
-        for (int i = 0; i < len; i++)
-        {
-            sb.append((char)('A' + i % 26));
+        for (int i = 0; i < len; i++) {
+            sb.append((char) ('A' + i % 26));
         }
         return sb.toString();
     }
 
     @Test
-    public void testBasics() throws IOException, InterruptedException
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testBasics() throws IOException, InterruptedException {
+        try (OHCache<Integer, String> cache = cache()) {
             Assert.assertEquals(cache.freeCapacity(), cache.capacity());
 
             cache.put(11, "hello world \u00e4\u00f6\u00fc\u00df");
@@ -147,10 +125,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test(dependsOnMethods = "testBasics")
-    public void testRemoveAndReAdd() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testRemoveAndReAdd() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             cache.put(1, "one thing");
             Assert.assertEquals(cache.get(1), "one thing");
 
@@ -170,10 +146,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test(dependsOnMethods = "testBasics")
-    public void testManyValues() throws IOException, InterruptedException
-    {
-        try (OHCache<Integer, String> cache = cache(64, -1))
-        {
+    public void testManyValues() throws IOException, InterruptedException {
+        try (OHCache<Integer, String> cache = cache(64, -1)) {
             Assert.assertEquals(cache.freeCapacity(), cache.capacity());
 
             TestUtils.fillMany(cache);
@@ -189,8 +163,7 @@ public class ChunkedCacheImplTest
             Assert.assertEquals(stats.getHitCount(), TestUtils.manyCount);
             Assert.assertEquals(stats.getSize(), TestUtils.manyCount);
 
-            for (int i = 0; i < TestUtils.manyCount; i++)
-            {
+            for (int i = 0; i < TestUtils.manyCount; i++) {
                 Assert.assertEquals(cache.get(i), Integer.toHexString(i), "for i=" + i);
                 assertTrue(cache.containsKey(i), "for i=" + i);
                 cache.put(i, Integer.toOctalString(i));
@@ -210,8 +183,7 @@ public class ChunkedCacheImplTest
             Assert.assertEquals(stats.getHitCount(), TestUtils.manyCount * 6);
             Assert.assertEquals(stats.getSize(), TestUtils.manyCount);
 
-            for (int i = 0; i < TestUtils.manyCount; i++)
-            {
+            for (int i = 0; i < TestUtils.manyCount; i++) {
                 Assert.assertEquals(cache.get(i), Integer.toOctalString(i), "for i=" + i);
                 assertTrue(cache.containsKey(i), "for i=" + i);
                 cache.remove(i);
@@ -229,14 +201,11 @@ public class ChunkedCacheImplTest
     }
 
     @Test(dependsOnMethods = "testBasics")
-    public void testHotN() throws IOException, InterruptedException
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testHotN() throws IOException, InterruptedException {
+        try (OHCache<Integer, String> cache = cache()) {
             TestUtils.fill5(cache);
 
-            try (CloseableIterator<Integer> iter = cache.hotKeyIterator(1))
-            {
+            try (CloseableIterator<Integer> iter = cache.hotKeyIterator(1)) {
                 Assert.assertNotNull(iter.next());
             }
         }
@@ -245,10 +214,8 @@ public class ChunkedCacheImplTest
     // per-method tests
 
     @Test
-    public void testAddOrReplace() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testAddOrReplace() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             for (int i = 0; i < TestUtils.manyCount; i++)
                 assertTrue(cache.addOrReplace(i, "", Integer.toHexString(i)));
 
@@ -262,10 +229,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testPutIfAbsent() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testPutIfAbsent() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             for (int i = 0; i < TestUtils.manyCount; i++)
                 assertTrue(cache.putIfAbsent(i, Integer.toHexString(i)));
 
@@ -276,10 +241,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testPutAll() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testPutAll() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             Map<Integer, String> map = new HashMap<>();
             map.put(1, "one");
             map.put(2, "two");
@@ -293,10 +256,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testRemove() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testRemove() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             TestUtils.fillMany(cache);
 
             cache.put(42, "foo");
@@ -311,10 +272,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testRemoveAll() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testRemoveAll() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             for (int i = 0; i < 100; i++)
                 cache.put(i, Integer.toOctalString(i));
             for (int i = 0; i < 100; i++)
@@ -349,10 +308,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testClear() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testClear() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             for (int i = 0; i < 100; i++)
                 cache.put(i, Integer.toOctalString(i));
             for (int i = 0; i < 100; i++)
@@ -369,10 +326,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testGet_Put() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testGet_Put() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             cache.put(42, "foo");
             Assert.assertEquals(cache.get(42), "foo");
             Assert.assertNull(cache.get(11));
@@ -388,10 +343,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testContainsKey() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testContainsKey() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             cache.put(42, "foo");
             assertTrue(cache.containsKey(42));
             Assert.assertFalse(cache.containsKey(11));
@@ -399,10 +352,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testHotKeyIterator() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testHotKeyIterator() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             Assert.assertFalse(cache.hotKeyIterator(10).hasNext());
 
             for (int i = 0; i < 100; i++)
@@ -410,11 +361,9 @@ public class ChunkedCacheImplTest
 
             Assert.assertEquals(cache.stats().getSize(), 100);
 
-            try (CloseableIterator<Integer> iProd = cache.hotKeyIterator(10))
-            {
+            try (CloseableIterator<Integer> iProd = cache.hotKeyIterator(10)) {
                 int count = 0;
-                while (iProd.hasNext())
-                {
+                while (iProd.hasNext()) {
                     iProd.next();
                     count++;
                 }
@@ -424,10 +373,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test(dependsOnMethods = "testBasics")
-    public void testKeyIterator1() throws IOException, InterruptedException
-    {
-        try (OHCache<Integer, String> cache = cache(32))
-        {
+    public void testKeyIterator1() throws IOException, InterruptedException {
+        try (OHCache<Integer, String> cache = cache(32)) {
             long capacity = cache.capacity();
             Assert.assertEquals(cache.freeCapacity(), capacity);
 
@@ -435,8 +382,7 @@ public class ChunkedCacheImplTest
 
             Set<Integer> returned = new TreeSet<>();
             Iterator<Integer> iter = cache.keyIterator();
-            for (int i = 0; i < 5; i++)
-            {
+            for (int i = 0; i < 5; i++) {
                 assertTrue(iter.hasNext());
                 returned.add(iter.next());
             }
@@ -464,8 +410,7 @@ public class ChunkedCacheImplTest
             assertTrue(returned.contains(5));
 
             iter = cache.keyIterator();
-            for (int i = 0; i < 5; i++)
-            {
+            for (int i = 0; i < 5; i++) {
                 iter.next();
                 iter.remove();
             }
@@ -480,10 +425,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testKeyIterator2() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testKeyIterator2() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             Assert.assertFalse(cache.keyIterator().hasNext());
 
             for (int i = 0; i < 100; i++)
@@ -492,10 +435,8 @@ public class ChunkedCacheImplTest
             Assert.assertEquals(cache.stats().getSize(), 100);
 
             Set<Integer> keys = new HashSet<>();
-            try (CloseableIterator<Integer> iter = cache.keyIterator())
-            {
-                while (iter.hasNext())
-                {
+            try (CloseableIterator<Integer> iter = cache.keyIterator()) {
+                while (iter.hasNext()) {
                     Integer k = iter.next();
                     assertTrue(keys.add(k));
                 }
@@ -519,32 +460,29 @@ public class ChunkedCacheImplTest
             List<ByteBuffer> got = new ArrayList<>();
             int serSize = TestUtils.intSerializer.serializedSize(0);
             int cnt = 0;
-            try (CloseableIterator<ByteBuffer> iter = cache.keyBufferIterator())
-            {
-                while (iter.hasNext())
-                {
+            try (CloseableIterator<ByteBuffer> iter = cache.keyBufferIterator()) {
+                while (iter.hasNext()) {
                     ByteBuffer bb = ByteBuffer.allocate(serSize);
                     bb.put(iter.next());
                     bb.flip();
                     got.add(bb);
                     iter.remove();
-                    cnt ++;
+                    cnt++;
                 }
             }
             Assert.assertEquals(cnt, 100);
             Assert.assertEquals(got.size(), 100);
-            for (int i = 0; i < 100; i++)
-            {
+            for (int i = 0; i < 100; i++) {
                 ByteBuffer bb = ByteBuffer.allocate(serSize);
                 TestUtils.intSerializer.serialize(i, bb);
                 bb.flip();
                 Assert.assertTrue(got.indexOf(bb) != -1);
             }
 
-            for (CloseableIterator<ByteBuffer> iter = cache.keyBufferIterator();iter.hasNext();)
+            for (CloseableIterator<ByteBuffer> iter = cache.keyBufferIterator(); iter.hasNext();)
                 System.out.println(iter.next());
 
-            for (CloseableIterator<Integer> iter = cache.keyIterator();iter.hasNext();)
+            for (CloseableIterator<Integer> iter = cache.keyIterator(); iter.hasNext();)
                 System.out.println(iter.next());
 
             Assert.assertFalse(cache.keyBufferIterator().hasNext());
@@ -554,10 +492,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testHotKeyBufferIterator() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testHotKeyBufferIterator() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             Assert.assertFalse(cache.hotKeyIterator(10).hasNext());
 
             for (int i = 0; i < 100; i++)
@@ -565,11 +501,9 @@ public class ChunkedCacheImplTest
 
             Assert.assertEquals(cache.stats().getSize(), 100);
 
-            try (CloseableIterator<ByteBuffer> iProd = cache.hotKeyBufferIterator(10))
-            {
+            try (CloseableIterator<ByteBuffer> iProd = cache.hotKeyBufferIterator(10)) {
                 int count = 0;
-                while (iProd.hasNext())
-                {
+                while (iProd.hasNext()) {
                     iProd.next();
                     count++;
                 }
@@ -580,10 +514,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testKeyBufferIterator() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testKeyBufferIterator() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             Assert.assertFalse(cache.keyBufferIterator().hasNext());
 
             for (int i = 0; i < 100; i++)
@@ -592,10 +524,8 @@ public class ChunkedCacheImplTest
             Assert.assertEquals(cache.stats().getSize(), 100);
 
             Set<Integer> keys = new HashSet<>();
-            try (CloseableIterator<ByteBuffer> iter = cache.keyBufferIterator())
-            {
-                while (iter.hasNext())
-                {
+            try (CloseableIterator<ByteBuffer> iter = cache.keyBufferIterator()) {
+                while (iter.hasNext()) {
                     ByteBuffer k = iter.next();
                     ByteBuffer k2 = ByteBuffer.allocate(k.remaining());
                     k2.put(k);
@@ -619,10 +549,8 @@ public class ChunkedCacheImplTest
             for (int i = 0; i < 100; i++)
                 cache.put(i, Integer.toOctalString(i));
 
-            try (CloseableIterator<ByteBuffer> iter = cache.keyBufferIterator())
-            {
-                while (iter.hasNext())
-                {
+            try (CloseableIterator<ByteBuffer> iter = cache.keyBufferIterator()) {
+                while (iter.hasNext()) {
                     iter.next();
                 }
             }
@@ -630,10 +558,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testGetBucketHistogram() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testGetBucketHistogram() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             for (int i = 0; i < 100; i++)
                 cache.put(i, Integer.toOctalString(i));
 
@@ -653,8 +579,7 @@ public class ChunkedCacheImplTest
         }
     }
 
-    private static int sum(int[] ints)
-    {
+    private static int sum(int[] ints) {
         int r = 0;
         for (int i : ints)
             r += i;
@@ -662,10 +587,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testFreeCapacity() throws Exception
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testFreeCapacity() throws Exception {
+        try (OHCache<Integer, String> cache = cache()) {
             long cap = cache.capacity();
 
             cache.put(42, "foo");
@@ -685,10 +608,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testResetStatistics() throws IOException
-    {
-        try (OHCache<Integer, String> cache = cache())
-        {
+    public void testResetStatistics() throws IOException {
+        try (OHCache<Integer, String> cache = cache()) {
             for (int i = 0; i < 100; i++)
                 cache.put(i, Integer.toString(i));
 
@@ -723,10 +644,8 @@ public class ChunkedCacheImplTest
     }
 
     @Test
-    public void testTooBigEntryOnPut() throws IOException
-    {
-        try (OHCache<Integer, String> cache = cache(8, -1, -1, TestUtils.intSerializer.serializedSize(1) + Util.entryOffData(false) + 5))
-        {
+    public void testTooBigEntryOnPut() throws IOException {
+        try (OHCache<Integer, String> cache = cache(8, -1, -1, TestUtils.intSerializer.serializedSize(1) + Util.entryOffData(false) + 5)) {
             cache.put(1, new String(new byte[100]));
             Assert.assertEquals(cache.size(), 0);
 

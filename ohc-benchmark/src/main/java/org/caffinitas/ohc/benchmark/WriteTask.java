@@ -15,24 +15,22 @@
  */
 package org.caffinitas.ohc.benchmark;
 
-class WriteTask implements Task
-{
+class WriteTask implements Task {
     private final long key;
     private final int valueLen;
 
-    public WriteTask(long key, int valueLen)
-    {
+    public WriteTask(long key, int valueLen) {
         this.key = key;
         this.valueLen = valueLen;
     }
 
-    public int timer()
-    {
+    @Override
+    public int timer() {
         return 1;
     }
 
-    public Object call() throws Exception
-    {
+    @Override
+    public Object call() throws Exception {
         Shared.cache.put(key, new byte[valueLen]);
         return null;
     }

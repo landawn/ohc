@@ -20,8 +20,7 @@ import java.nio.ByteBuffer;
 /**
  * Serialize and deserialize cached data using {@link java.nio.ByteBuffer}
  */
-public interface CacheSerializer<T>
-{
+public interface CacheSerializer<T> {
     /**
      * Serialize the specified type into the specified {@code ByteBuffer} instance.
      *
@@ -54,4 +53,3 @@ public interface CacheSerializer<T>
      */
     int serializedSize(T value);
 }
-

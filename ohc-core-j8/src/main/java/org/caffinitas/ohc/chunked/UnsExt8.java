@@ -20,15 +20,14 @@ import java.util.zip.CRC32;
 
 import sun.misc.Unsafe;
 
-final class UnsExt8 extends UnsExt
-{
-    UnsExt8(Unsafe unsafe)
-    {
+@SuppressWarnings("restriction")
+final class UnsExt8 extends UnsExt {
+    UnsExt8(Unsafe unsafe) {
         super(unsafe);
     }
 
-    long crc32(ByteBuffer buffer)
-    {
+    @Override
+    long crc32(ByteBuffer buffer) {
         CRC32 crc = new CRC32();
         crc.update(buffer);
         return crc.getValue();

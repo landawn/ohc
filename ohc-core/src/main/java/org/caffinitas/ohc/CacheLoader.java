@@ -22,8 +22,7 @@ package org.caffinitas.ohc;
  * @param <K> type of the cache key
  * @param <V> type of the cache value
  */
-public interface CacheLoader<K, V>
-{
+public interface CacheLoader<K, V> {
     /**
      * Cache loaders implement this method and return a non-{@code null} value on success.
      * {@code null} can be returned to indicate that the no value for the requested key could be found.

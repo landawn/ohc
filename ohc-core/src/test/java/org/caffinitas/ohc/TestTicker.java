@@ -17,24 +17,20 @@ package org.caffinitas.ohc;
 
 import java.util.concurrent.TimeUnit;
 
-public final class TestTicker implements Ticker
-{
+public final class TestTicker implements Ticker {
     private volatile long millis = System.currentTimeMillis();
     private volatile long nanos = System.nanoTime();
 
-    public void addMillis(long add)
-    {
+    public void addMillis(long add) {
         millis += add;
         nanos += TimeUnit.MILLISECONDS.toNanos(add);
     }
 
-    public long nanos()
-    {
+    public long nanos() {
         return nanos;
     }
 
-    public long currentTimeMillis()
-    {
+    public long currentTimeMillis() {
         return millis;
     }
 }

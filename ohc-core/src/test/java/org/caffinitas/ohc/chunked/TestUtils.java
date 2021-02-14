@@ -25,28 +25,24 @@ import org.caffinitas.ohc.CacheSerializer;
 import org.caffinitas.ohc.OHCache;
 import org.testng.Assert;
 
-final class TestUtils
-{
+final class TestUtils {
     public static final long ONE_MB = 1024 * 1024;
 
     public static final byte[] dummyByteArray;
     public static final int INT_SERIALIZER_LEN = 529;
-    public static final CacheSerializer<Integer> intSerializer = new CacheSerializer<Integer>()
-    {
-        public void serialize(Integer s, ByteBuffer buf)
-        {
-            buf.put((byte)(1 & 0xff));
+    public static final CacheSerializer<Integer> intSerializer = new CacheSerializer<Integer>() {
+        public void serialize(Integer s, ByteBuffer buf) {
+            buf.put((byte) (1 & 0xff));
             buf.putChar('A');
             buf.putDouble(42.42424242d);
             buf.putFloat(11.111f);
             buf.putInt(s);
             buf.putLong(Long.MAX_VALUE);
-            buf.putShort((short)(0x7654 & 0xFFFF));
+            buf.putShort((short) (0x7654 & 0xFFFF));
             buf.put(dummyByteArray);
         }
 
-        public Integer deserialize(ByteBuffer buf)
-        {
+        public Integer deserialize(ByteBuffer buf) {
             Assert.assertEquals(buf.get(), (byte) 1);
             Assert.assertEquals(buf.getChar(), 'A');
             Assert.assertEquals(buf.getDouble(), 42.42424242d);
@@ -60,62 +56,51 @@ final class TestUtils
             return r;
         }
 
-        public int serializedSize(Integer s)
-        {
+        public int serializedSize(Integer s) {
             return INT_SERIALIZER_LEN;
         }
     };
 
-    public static final CacheSerializer<String> stringSerializer = new CacheSerializer<String>()
-    {
-        public void serialize(String s, ByteBuffer buf)
-        {
+    public static final CacheSerializer<String> stringSerializer = new CacheSerializer<String>() {
+        public void serialize(String s, ByteBuffer buf) {
             byte[] bytes = s.getBytes(Charsets.UTF_8);
             buf.put((byte) ((bytes.length >>> 8) & 0xFF));
             buf.put((byte) ((bytes.length >>> 0) & 0xFF));
             buf.put(bytes);
         }
 
-        public String deserialize(ByteBuffer buf)
-        {
+        public String deserialize(ByteBuffer buf) {
             int length = (((buf.get() & 0xff) << 8) + ((buf.get() & 0xff) << 0));
             byte[] bytes = new byte[length];
             buf.get(bytes);
             return new String(bytes, Charsets.UTF_8);
         }
 
-        public int serializedSize(String s)
-        {
+        public int serializedSize(String s) {
             return writeUTFLen(s);
         }
     };
 
     public static final int FIXED_KEY_LEN = 68;
-    static CacheSerializer<Integer> fixedKeySerializer = new CacheSerializer<Integer>()
-    {
-        public void serialize(Integer integer, ByteBuffer buf)
-        {
+    static CacheSerializer<Integer> fixedKeySerializer = new CacheSerializer<Integer>() {
+        public void serialize(Integer integer, ByteBuffer buf) {
             buf.putInt(integer);
             for (int i = 4; i < FIXED_KEY_LEN; i++)
                 buf.put((byte) 0);
         }
 
-        public Integer deserialize(ByteBuffer buf)
-        {
+        public Integer deserialize(ByteBuffer buf) {
             return buf.getInt();
         }
 
-        public int serializedSize(Integer integer)
-        {
+        public int serializedSize(Integer integer) {
             return FIXED_KEY_LEN;
         }
     };
 
     public static final int FIXED_VALUE_LEN = 30;
-    static CacheSerializer<String> fixedValueSerializer = new CacheSerializer<String>()
-    {
-        public void serialize(String s, ByteBuffer buf)
-        {
+    static CacheSerializer<String> fixedValueSerializer = new CacheSerializer<String>() {
+        public void serialize(String s, ByteBuffer buf) {
             byte[] bytes = s.getBytes(Charsets.UTF_8);
             buf.putShort((short) bytes.length);
             if (bytes.length > FIXED_VALUE_LEN - 2)
@@ -125,27 +110,23 @@ final class TestUtils
                 buf.put((byte) 0);
         }
 
-        public String deserialize(ByteBuffer buf)
-        {
+        public String deserialize(ByteBuffer buf) {
             byte[] b = new byte[buf.getShort()];
             buf.get(b);
             return new String(b, Charsets.UTF_8);
         }
 
-        public int serializedSize(String s)
-        {
+        public int serializedSize(String s) {
             return FIXED_VALUE_LEN;
         }
     };
 
-    static int writeUTFLen(String str)
-    {
+    static int writeUTFLen(String str) {
         int strlen = str.length();
         int utflen = 0;
         int c;
 
-        for (int i = 0; i < strlen; i++)
-        {
+        for (int i = 0; i < strlen; i++) {
             c = str.charAt(i);
             if ((c >= 0x0001) && (c <= 0x007F))
                 utflen++;
@@ -172,8 +153,7 @@ final class TestUtils
 
     static int manyCount = 20000;
 
-    static
-    {
+    static {
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 1000; i++)
@@ -187,8 +167,7 @@ final class TestUtils
         bigRandom = sb.toString();
     }
 
-    static void fill5(OHCache<Integer, String> cache)
-    {
+    static void fill5(OHCache<Integer, String> cache) {
         cache.put(1, "one");
         cache.put(2, "two");
         cache.put(3, "three");
@@ -196,8 +175,7 @@ final class TestUtils
         cache.put(5, "five");
     }
 
-    static void check5(OHCache<Integer, String> cache)
-    {
+    static void check5(OHCache<Integer, String> cache) {
         Assert.assertEquals(cache.get(1), "one");
         Assert.assertEquals(cache.get(2), "two");
         Assert.assertEquals(cache.get(3), "three");
@@ -205,14 +183,12 @@ final class TestUtils
         Assert.assertEquals(cache.get(5), "five");
     }
 
-    static void fillMany(OHCache<Integer, String> cache)
-    {
+    static void fillMany(OHCache<Integer, String> cache) {
         for (int i = 0; i < manyCount; i++)
             cache.put(i, Integer.toHexString(i));
     }
 
-    static byte[] randomBytes(int len)
-    {
+    static byte[] randomBytes(int len) {
         Random r = new Random();
         byte[] arr = new byte[len];
         r.nextBytes(arr);

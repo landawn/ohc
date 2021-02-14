@@ -20,45 +20,43 @@ package org.caffinitas.ohc.benchmark.distribution;
  * 
  */
 
+public class DistributionInverted extends Distribution {
 
-public class DistributionInverted extends Distribution
-{
-
+    private static final long serialVersionUID = 2610490464931791839L;
     final Distribution wrapped;
     final long min;
     final long max;
 
-    public DistributionInverted(Distribution wrapped)
-    {
+    public DistributionInverted(Distribution wrapped) {
         this.wrapped = wrapped;
         this.min = wrapped.minValue();
         this.max = wrapped.maxValue();
     }
 
-    public long next()
-    {
+    @Override
+    public long next() {
         return max - (wrapped.next() - min);
     }
 
-    public double nextDouble()
-    {
+    @Override
+    public double nextDouble() {
         return max - (wrapped.nextDouble() - min);
     }
 
-    public long inverseCumProb(double cumProb)
-    {
+    @Override
+    public long inverseCumProb(double cumProb) {
         return max - (wrapped.inverseCumProb(cumProb) - min);
     }
 
-    public void setSeed(long seed)
-    {
+    @Override
+    public void setSeed(long seed) {
         wrapped.setSeed(seed);
     }
 
-    public static Distribution invert(Distribution distribution)
-    {
-        if (distribution instanceof DistributionInverted)
+    public static Distribution invert(Distribution distribution) {
+        if (distribution instanceof DistributionInverted) {
             return ((DistributionInverted) distribution).wrapped;
+        }
         return new DistributionInverted(distribution);
     }
 

@@ -27,8 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * On-heap test-only counterpart of {@link OffHeapChunkedMap} for {@link CheckOHCacheImpl}.
  */
-final class CheckSegment
-{
+final class CheckSegment {
     private final Map<KeyBuffer, byte[]> map;
     private final LinkedList<KeyBuffer> lru = new LinkedList<>();
     private final AtomicLong freeCapacity;
@@ -40,25 +39,21 @@ final class CheckSegment
     long removeCount;
     long evictedEntries;
 
-    public CheckSegment(int initialCapacity, float loadFactor, AtomicLong freeCapacity)
-    {
+    public CheckSegment(int initialCapacity, float loadFactor, AtomicLong freeCapacity) {
         this.map = new HashMap<>(initialCapacity, loadFactor);
         this.freeCapacity = freeCapacity;
     }
 
-    synchronized void clear()
-    {
+    synchronized void clear() {
         for (Map.Entry<KeyBuffer, byte[]> entry : map.entrySet())
             freeCapacity.addAndGet(sizeOf(entry.getKey(), entry.getValue()));
         map.clear();
         lru.clear();
     }
 
-    synchronized byte[] get(KeyBuffer keyBuffer)
-    {
+    synchronized byte[] get(KeyBuffer keyBuffer) {
         byte[] r = map.get(keyBuffer);
-        if (r == null)
-        {
+        if (r == null) {
             missCount++;
             return null;
         }
@@ -70,19 +65,16 @@ final class CheckSegment
         return r;
     }
 
-    synchronized boolean put(KeyBuffer keyBuffer, byte[] data, boolean ifAbsent, byte[] old)
-    {
+    synchronized boolean put(KeyBuffer keyBuffer, byte[] data, boolean ifAbsent, byte[] old) {
         long sz = sizeOf(keyBuffer, data);
         while (freeCapacity.get() < sz)
-            if (!evictOne())
-            {
+            if (!evictOne()) {
                 remove(keyBuffer);
                 return false;
             }
 
         byte[] existing = map.get(keyBuffer);
-        if (ifAbsent || old != null)
-        {
+        if (ifAbsent || old != null) {
             if (ifAbsent && existing != null)
                 return false;
             if (old != null && existing != null && !Arrays.equals(old, existing))
@@ -93,12 +85,10 @@ final class CheckSegment
         lru.remove(keyBuffer);
         lru.addFirst(keyBuffer);
 
-        if (existing != null)
-        {
+        if (existing != null) {
             freeCapacity.addAndGet(sizeOf(keyBuffer, existing));
             putReplaceCount++;
-        }
-        else
+        } else
             putAddCount++;
 
         freeCapacity.addAndGet(-sz);
@@ -106,11 +96,9 @@ final class CheckSegment
         return true;
     }
 
-    synchronized boolean remove(KeyBuffer keyBuffer)
-    {
+    synchronized boolean remove(KeyBuffer keyBuffer) {
         byte[] old = map.remove(keyBuffer);
-        if (old != null)
-        {
+        if (old != null) {
             boolean r = lru.remove(keyBuffer);
             removeCount++;
             freeCapacity.addAndGet(sizeOf(keyBuffer, old));
@@ -119,28 +107,24 @@ final class CheckSegment
         return false;
     }
 
-    synchronized long size()
-    {
+    synchronized long size() {
         return map.size();
     }
 
-    synchronized Iterator<KeyBuffer> hotN(int n)
-    {
+    synchronized Iterator<KeyBuffer> hotN(int n) {
         List<KeyBuffer> lst = new ArrayList<>(n);
-        for (Iterator<KeyBuffer> iter = lru.iterator(); iter.hasNext() && n-- > 0; )
+        for (Iterator<KeyBuffer> iter = lru.iterator(); iter.hasNext() && n-- > 0;)
             lst.add(iter.next());
         return lst.iterator();
     }
 
-    synchronized Iterator<KeyBuffer> keyIterator()
-    {
+    synchronized Iterator<KeyBuffer> keyIterator() {
         return new ArrayList<>(lru).iterator();
     }
 
     //
 
-    private boolean evictOne()
-    {
+    private boolean evictOne() {
         KeyBuffer last = lru.pollLast();
         if (last == null)
             return false;
@@ -150,14 +134,12 @@ final class CheckSegment
         return true;
     }
 
-    static long sizeOf(KeyBuffer key, byte[] value)
-    {
+    static long sizeOf(KeyBuffer key, byte[] value) {
         // calculate the same value as the original impl would do
         return Util.allocLen(key.size(), value.length, false);
     }
 
-    void resetStatistics()
-    {
+    void resetStatistics() {
         evictedEntries = 0L;
         hitCount = 0L;
         missCount = 0L;

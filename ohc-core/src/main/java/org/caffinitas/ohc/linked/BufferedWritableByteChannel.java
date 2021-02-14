@@ -15,78 +15,74 @@
  */
 package org.caffinitas.ohc.linked;
 
+import static org.caffinitas.ohc.linked.Util.writeFully;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
-import static org.caffinitas.ohc.linked.Util.writeFully;
-
-final class BufferedWritableByteChannel implements WritableByteChannel
-{
+final class BufferedWritableByteChannel implements WritableByteChannel {
     private final WritableByteChannel delegate;
     private final long bufferAddress;
     private ByteBuffer buffer;
     private boolean closed;
 
-    BufferedWritableByteChannel(WritableByteChannel delegate, int bufferSize) throws IOException
-    {
+    BufferedWritableByteChannel(WritableByteChannel delegate, int bufferSize) throws IOException {
         this.delegate = delegate;
         this.bufferAddress = Uns.allocateIOException(bufferSize);
         this.buffer = Uns.directBufferFor(bufferAddress, 0L, bufferSize, false);
     }
 
-    public int write(ByteBuffer src) throws IOException
-    {
+    @Override
+    public int write(ByteBuffer src) throws IOException {
         int wr = 0;
-        while (true)
-        {
+        while (true) {
             int sr = src.remaining();
-            if (sr == 0)
+            if (sr == 0) {
                 return wr;
+            }
             int br = buffer.remaining();
-            if (br == 0)
-            {
+            if (br == 0) {
                 buffer.flip();
                 writeFully(delegate, buffer);
                 buffer.clear();
             }
-            if (sr > br)
-            {
+            if (sr > br) {
                 int lim = src.limit();
                 src.limit(src.position() + br);
                 buffer.put(src);
                 src.position(src.limit());
                 src.limit(lim);
                 wr += br;
-            }
-            else
-            {
+            } else {
                 buffer.put(src);
                 wr += sr;
             }
         }
     }
 
-    public boolean isOpen()
-    {
+    @Override
+    public boolean isOpen() {
         return buffer != null;
     }
 
-    public void close() throws IOException
-    {
+    @Override
+    public void close() throws IOException {
         buffer.flip();
         writeFully(delegate, buffer);
 
         buffer = null;
-        if (!closed)
+        if (!closed) {
             Uns.free(bufferAddress);
+        }
         closed = true;
     }
 
-    protected void finalize() throws Throwable
-    {
-        if (!closed)
+    @Override
+    protected void finalize() throws Throwable {
+        if (!closed) {
             Uns.free(bufferAddress);
+        }
         super.finalize();
     }
 }

@@ -19,36 +19,33 @@ import java.nio.ByteBuffer;
 
 import org.caffinitas.ohc.DirectValueAccess;
 
-class DirectValueAccessImpl implements DirectValueAccess
-{
+class DirectValueAccessImpl implements DirectValueAccess {
     private final long hashEntryAdr;
     private boolean closed;
     private final ByteBuffer buffer;
 
-    DirectValueAccessImpl(long hashEntryAdr, boolean readOnly)
-    {
+    DirectValueAccessImpl(long hashEntryAdr, boolean readOnly) {
         long keyLen = HashEntries.getKeyLen(hashEntryAdr);
         long valueLen = HashEntries.getValueLen(hashEntryAdr);
         this.hashEntryAdr = hashEntryAdr;
         this.buffer = Uns.directBufferFor(hashEntryAdr, Util.ENTRY_OFF_DATA + Util.roundUpTo8(keyLen), valueLen, readOnly);
     }
 
-    public ByteBuffer buffer()
-    {
-        if (closed)
+    @Override
+    public ByteBuffer buffer() {
+        if (closed) {
             throw new IllegalStateException("already closed");
+        }
         return buffer;
     }
 
-    public void close()
-    {
+    @Override
+    public void close() {
         deref();
     }
 
-    private void deref()
-    {
-        if (!closed)
-        {
+    private void deref() {
+        if (!closed) {
             Uns.invalidateDirectBuffer(buffer);
             closed = true;
             HashEntries.dereference(hashEntryAdr);

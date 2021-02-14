@@ -44,8 +44,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @Threads(4)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Fork(value = 1, jvmArgsAppend = "-Xmx512M")
-public class OHCBenchmark
-{
+public class OHCBenchmark {
     private OHCache<Integer, byte[]> cache;
 
     @Param({ "256"/*, "2048", "65536"*/ })
@@ -66,109 +65,104 @@ public class OHCBenchmark
     private int fixedKeyLen = -1;
     @Param("-1")
     private int fixedValLen = -1;
-    @Param({"LRU", "W_TINY_LFU"})
+    @Param({ "LRU", "W_TINY_LFU" })
     private Eviction eviction = Eviction.LRU;
 
     private byte[] value;
 
     @State(Scope.Thread)
-    public static class PutState
-    {
+    public static class PutState {
         public int key = ThreadLocalRandom.current().nextInt(1000);
     }
 
     @State(Scope.Thread)
-    public static class GetState
-    {
+    public static class GetState {
         public int key = ThreadLocalRandom.current().nextInt(1000);
         public int run;
     }
 
     @Setup
-    public void setup() throws ClassNotFoundException
-    {
-        cache = OHCacheBuilder.<Integer, byte[]>newBuilder()
-                              .capacity(capacity)
-                              .segmentCount(segCnt)
-                              .hashTableSize(hashTableSz)
-                              .keySerializer(Utils.intSerializer)
-                              .valueSerializer(Utils.byteArraySerializer)
-                              .chunkSize(chunkSz)
-                              .fixedEntrySize(fixedKeyLen, fixedValLen)
-                              .hashMode(hashAlg)
-                              .eviction(eviction)
-                              .build();
+    public void setup() {
+        cache = OHCacheBuilder.<Integer, byte[]> newBuilder()
+                .capacity(capacity)
+                .segmentCount(segCnt)
+                .hashTableSize(hashTableSz)
+                .keySerializer(Utils.intSerializer)
+                .valueSerializer(Utils.byteArraySerializer)
+                .chunkSize(chunkSz)
+                .fixedEntrySize(fixedKeyLen, fixedValLen)
+                .hashMode(hashAlg)
+                .eviction(eviction)
+                .build();
 
         value = new byte[valueSz];
 
-        for (int i = 0; i < keys; i++)
+        for (int i = 0; i < keys; i++) {
             cache.put(i, value);
+        }
     }
 
     @TearDown
-    public void tearDown() throws IOException
-    {
+    public void tearDown() throws IOException {
         cache.close();
     }
 
     @Benchmark
     @Threads(value = 4)
-    public void getNonExisting()
-    {
+    public void getNonExisting() {
         cache.get(0);
     }
 
     @Benchmark
     @Threads(value = 4)
-    public void containsNonExisting()
-    {
+    public void containsNonExisting() {
         cache.containsKey(0);
     }
 
     @Benchmark
     @Threads(value = 1)
-    public void putSingleThreaded(PutState state)
-    {
+    public void putSingleThreaded(PutState state) {
         cache.put(state.key++, value);
-        if (state.key > keys)
+        if (state.key > keys) {
             state.key = 1;
+        }
     }
 
     @Benchmark
     @Threads(value = 4)
-    public void putMultiThreaded(PutState state)
-    {
+    public void putMultiThreaded(PutState state) {
         cache.put(state.key++, value);
-        if (state.key > keys)
+        if (state.key > keys) {
             state.key = 1;
+        }
     }
 
     @Benchmark
     @Threads(value = 1)
-    public void getSingleThreaded(GetState state)
-    {
+    public void getSingleThreaded(GetState state) {
         cache.get(state.key++);
-        if (state.key > keys)
+        if (state.key > keys) {
             state.key = 1;
+        }
     }
 
     @Benchmark
     @Threads(value = 4)
-    public void getMultiThreaded(GetState state)
-    {
+    public void getMultiThreaded(GetState state) {
         cache.get(state.key++);
 
-        state.run ++;
+        state.run++;
 
-        if (state.run < 4)
-        {
-            if (state.key > keys / 5)
+        if (state.run < 4) {
+            if (state.key > keys / 5) {
                 state.key = 1;
+            }
         }
 
         state.run = 0;
 
-        if (state.key > keys)
+        if (state.key > keys) {
             state.key = 1;
+        }
     }
 }

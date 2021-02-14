@@ -15,24 +15,21 @@
  */
 package org.caffinitas.ohc;
 
-public class TemporaryLoadException extends Exception
-{
-    public TemporaryLoadException()
-    {
+public class TemporaryLoadException extends Exception {
+    private static final long serialVersionUID = 7229438962605974453L;
+
+    public TemporaryLoadException() {
     }
 
-    public TemporaryLoadException(Throwable cause)
-    {
+    public TemporaryLoadException(Throwable cause) {
         super(cause);
     }
 
-    public TemporaryLoadException(String message)
-    {
+    public TemporaryLoadException(String message) {
         super(message);
     }
 
-    public TemporaryLoadException(String message, Throwable cause)
-    {
+    public TemporaryLoadException(String message, Throwable cause) {
         super(message, cause);
     }
 }

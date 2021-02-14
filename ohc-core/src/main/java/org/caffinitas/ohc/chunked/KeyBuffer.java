@@ -17,68 +17,67 @@ package org.caffinitas.ohc.chunked;
 
 import java.nio.ByteBuffer;
 
-final class KeyBuffer
-{
+final class KeyBuffer {
     private final ByteBuffer bytes;
     private long hash;
 
-    KeyBuffer(ByteBuffer bytes)
-    {
+    KeyBuffer(ByteBuffer bytes) {
         this.bytes = bytes;
     }
 
-    ByteBuffer buffer()
-    {
+    ByteBuffer buffer() {
         return bytes;
     }
 
-    int size()
-    {
+    int size() {
         return bytes.limit() - bytes.position();
     }
 
-    long hash()
-    {
+    long hash() {
         return hash;
     }
 
-    KeyBuffer finish(Hasher hasher)
-    {
+    KeyBuffer finish(Hasher hasher) {
         // duplicate the buffer as the hasher implementation may change position
         hash = hasher.hash(bytes.duplicate());
 
         return this;
     }
 
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         KeyBuffer keyBuffer = (KeyBuffer) o;
 
         return bytes.equals(keyBuffer.bytes);
     }
 
-    public int hashCode()
-    {
+    @Override
+    public int hashCode() {
         return (int) hash;
     }
 
-    private static String padToEight(int val)
-    {
+    private static String padToEight(int val) {
         String str = Integer.toBinaryString(val & 0xff);
-        while (str.length() < 8)
+        while (str.length() < 8) {
             str = '0' + str;
+        }
         return str;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int ii = 0; ii < bytes.limit(); ii++) {
-            if (ii % 8 == 0 && ii != 0) sb.append('\n');
+            if (ii % 8 == 0 && ii != 0) {
+                sb.append('\n');
+            }
             sb.append(padToEight(bytes.get(ii)));
             sb.append(' ');
         }

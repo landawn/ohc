@@ -17,27 +17,23 @@ package org.caffinitas.ohc.alloc;
 
 import com.sun.jna.Native;
 
-public final class JNANativeAllocator implements IAllocator
-{
-    public long allocate(long size)
-    {
-        try
-        {
+public final class JNANativeAllocator implements IAllocator {
+    @Override
+    public long allocate(long size) {
+        try {
             return Native.malloc(size);
-        }
-        catch (OutOfMemoryError oom)
-        {
+        } catch (OutOfMemoryError oom) {
             return 0L;
         }
     }
 
-    public void free(long peer)
-    {
+    @Override
+    public void free(long peer) {
         Native.free(peer);
     }
 
-    public long getTotalAllocated()
-    {
+    @Override
+    public long getTotalAllocated() {
         return -1L;
     }
 }

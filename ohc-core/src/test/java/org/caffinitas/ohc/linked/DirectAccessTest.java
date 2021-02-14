@@ -27,39 +27,34 @@ import org.testng.annotations.Test;
 
 import com.google.common.base.Charsets;
 
-public class DirectAccessTest
-{
+public class DirectAccessTest {
     @AfterMethod(alwaysRun = true)
-    public void deinit()
-    {
+    public void deinit() {
         Uns.clearUnsDebugForTest();
     }
 
     @Test
-    public void testDirectPutGet() throws Exception
-    {
-        try (OHCache<Integer, String> cache = OHCacheBuilder.<Integer, String>newBuilder()
-                                                            .keySerializer(TestUtils.intSerializer)
-                                                            .valueSerializer(TestUtils.stringSerializer)
-                                                            .capacity(64 * 1024 * 1024)
-                                                            .build())
-        {
-            for (int i = 0; i < 100; i++)
-            {
+    public void testDirectPutGet() throws Exception {
+        try (OHCache<Integer, String> cache = OHCacheBuilder.<Integer, String> newBuilder()
+                .keySerializer(TestUtils.intSerializer)
+                .valueSerializer(TestUtils.stringSerializer)
+                .capacity(64 * 1024 * 1024)
+                .build()) {
+            for (int i = 0; i < 100; i++) {
                 String s = "";
-                for (int c = 0; c < i + 10; c++)
+                for (int c = 0; c < i + 10; c++) {
                     s = s + "42";
+                }
                 cache.put(i, s);
             }
 
-            for (int i = 0; i < 100; i++)
-            {
+            for (int i = 0; i < 100; i++) {
                 Assert.assertTrue(cache.containsKey(i));
-                try (DirectValueAccess direct = cache.getDirect(i))
-                {
+                try (DirectValueAccess direct = cache.getDirect(i)) {
                     String s = "";
-                    for (int c = 0; c < i + 10; c++)
+                    for (int c = 0; c < i + 10; c++) {
                         s = s + "42";
+                    }
                     byte[] bytes = s.getBytes(Charsets.UTF_8);
 
                     Assert.assertEquals(direct.buffer().capacity(), bytes.length + 2);
@@ -67,23 +62,17 @@ public class DirectAccessTest
 
                     Assert.assertEquals(TestUtils.stringSerializer.deserialize(direct.buffer()), s);
 
-                    try
-                    {
+                    try {
                         direct.buffer().get();
                         Assert.fail();
-                    }
-                    catch (BufferUnderflowException e)
-                    {
+                    } catch (BufferUnderflowException e) {
                         // fine
                     }
 
-                    try
-                    {
+                    try {
                         direct.buffer().put(0, (byte) 0);
                         Assert.fail();
-                    }
-                    catch (ReadOnlyBufferException e)
-                    {
+                    } catch (ReadOnlyBufferException e) {
                         // fine
                     }
                 }

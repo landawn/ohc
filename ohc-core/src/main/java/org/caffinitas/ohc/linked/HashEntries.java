@@ -18,10 +18,8 @@ package org.caffinitas.ohc.linked;
 /**
  * Encapsulates access to hash entries.
  */
-final class HashEntries
-{
-    static void init(long hash, int keyLen, int valueLen, long hashEntryAdr, int sentinel, long expireAt)
-    {
+final class HashEntries {
+    static void init(long hash, int keyLen, int valueLen, long hashEntryAdr, int sentinel, long expireAt) {
         Uns.putLong(hashEntryAdr, Util.ENTRY_OFF_EXPIRE_AT, expireAt);
         Uns.putLong(hashEntryAdr, Util.ENTRY_OFF_HASH, hash);
         setNext(hashEntryAdr, 0L);
@@ -32,13 +30,11 @@ final class HashEntries
         Uns.putInt(hashEntryAdr, Util.ENTRY_OFF_SENTINEL, sentinel);
     }
 
-    static boolean compare(long hashEntryAdr, long offset, long otherHashEntryAdr, long otherOffset, long len)
-    {
+    static boolean compare(long hashEntryAdr, long offset, long otherHashEntryAdr, long otherOffset, long len) {
         if (hashEntryAdr == 0L)
             return false;
 
-        if (hashEntryAdr == otherHashEntryAdr)
-        {
+        if (hashEntryAdr == otherHashEntryAdr) {
             assert offset == otherOffset;
             return true;
         }
@@ -60,109 +56,88 @@ final class HashEntries
         return true;
     }
 
-    public static long getLRUNext(long hashEntryAdr)
-    {
+    public static long getLRUNext(long hashEntryAdr) {
         return Uns.getLong(hashEntryAdr, Util.ENTRY_OFF_LRU_NEXT);
     }
 
-    public static void setLRUNext(long hashEntryAdr, long replacement)
-    {
+    public static void setLRUNext(long hashEntryAdr, long replacement) {
         Uns.putLong(hashEntryAdr, Util.ENTRY_OFF_LRU_NEXT, replacement);
     }
 
-    public static long getAndSetLRUNext(long hashEntryAdr, long replacement)
-    {
+    public static long getAndSetLRUNext(long hashEntryAdr, long replacement) {
         return Uns.getAndPutLong(hashEntryAdr, Util.ENTRY_OFF_LRU_NEXT, replacement);
     }
 
-    public static long getLRUPrev(long hashEntryAdr)
-    {
+    public static long getLRUPrev(long hashEntryAdr) {
         return Uns.getLong(hashEntryAdr, Util.ENTRY_OFF_LRU_PREV);
     }
 
-    public static void setLRUPrev(long hashEntryAdr, long replacement)
-    {
+    public static void setLRUPrev(long hashEntryAdr, long replacement) {
         Uns.putLong(hashEntryAdr, Util.ENTRY_OFF_LRU_PREV, replacement);
     }
 
-    public static long getAndSetLRUPrev(long hashEntryAdr, long replacement)
-    {
+    public static long getAndSetLRUPrev(long hashEntryAdr, long replacement) {
         return Uns.getAndPutLong(hashEntryAdr, Util.ENTRY_OFF_LRU_PREV, replacement);
     }
 
-    static long getHash(long hashEntryAdr)
-    {
+    static long getHash(long hashEntryAdr) {
         return Uns.getLong(hashEntryAdr, Util.ENTRY_OFF_HASH);
     }
 
-    static long getNext(long hashEntryAdr)
-    {
+    static long getNext(long hashEntryAdr) {
         return hashEntryAdr != 0L ? Uns.getLong(hashEntryAdr, Util.ENTRY_OFF_NEXT) : 0L;
     }
 
-    static int getSentinel(long hashEntryAdr)
-    {
+    static int getSentinel(long hashEntryAdr) {
         return hashEntryAdr != 0L ? Uns.getInt(hashEntryAdr, Util.ENTRY_OFF_SENTINEL) : 0;
     }
 
-    static void setSentinel(long hashEntryAdr, int sentinelState)
-    {
+    static void setSentinel(long hashEntryAdr, int sentinelState) {
         if (hashEntryAdr != 0L)
             Uns.putInt(hashEntryAdr, Util.ENTRY_OFF_SENTINEL, sentinelState);
     }
 
-    static void setNext(long hashEntryAdr, long nextAdr)
-    {
+    static void setNext(long hashEntryAdr, long nextAdr) {
         if (hashEntryAdr == nextAdr)
             throw new IllegalArgumentException();
         if (hashEntryAdr != 0L)
             Uns.putLong(hashEntryAdr, Util.ENTRY_OFF_NEXT, nextAdr);
     }
 
-    static int getKeyLen(long hashEntryAdr)
-    {
+    static int getKeyLen(long hashEntryAdr) {
         return Uns.getInt(hashEntryAdr, Util.ENTRY_OFF_KEY_LENGTH);
     }
 
-    static int getValueLen(long hashEntryAdr)
-    {
+    static int getValueLen(long hashEntryAdr) {
         return Uns.getInt(hashEntryAdr, Util.ENTRY_OFF_VALUE_LENGTH);
     }
 
-    static long getExpireAt(long hashEntryAdr)
-    {
+    static long getExpireAt(long hashEntryAdr) {
         return Uns.getLong(hashEntryAdr, Util.ENTRY_OFF_EXPIRE_AT);
     }
 
-    static void setExpireAt(long hashEntryAdr, long expireAt)
-    {
+    static void setExpireAt(long hashEntryAdr, long expireAt) {
         Uns.putLong(hashEntryAdr, Util.ENTRY_OFF_EXPIRE_AT, expireAt);
     }
 
-    static int getGeneration(long hashEntryAdr)
-    {
+    static int getGeneration(long hashEntryAdr) {
         return Uns.getInt(hashEntryAdr, Util.ENTRY_OFF_GENERATION);
     }
 
-    static void setGeneration(long hashEntryAdr, int generation)
-    {
+    static void setGeneration(long hashEntryAdr, int generation) {
         Uns.putInt(hashEntryAdr, Util.ENTRY_OFF_GENERATION, generation);
     }
 
-    static long getAllocLen(long hashEntryAdr)
-    {
+    static long getAllocLen(long hashEntryAdr) {
         return Util.allocLen(getKeyLen(hashEntryAdr), getValueLen(hashEntryAdr));
     }
 
-    static void reference(long hashEntryAdr)
-    {
+    static void reference(long hashEntryAdr) {
         Uns.increment(hashEntryAdr, Util.ENTRY_OFF_REFCOUNT);
     }
 
-    static boolean dereference(long hashEntryAdr)
-    {
-        if (hashEntryAdr != 0L && Uns.decrement(hashEntryAdr, Util.ENTRY_OFF_REFCOUNT))
-        {
+    static boolean dereference(long hashEntryAdr) {
+        if (hashEntryAdr != 0L && Uns.decrement(hashEntryAdr, Util.ENTRY_OFF_REFCOUNT)) {
             Uns.free(hashEntryAdr);
             return true;
         }

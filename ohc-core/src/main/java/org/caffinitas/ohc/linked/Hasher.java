@@ -17,57 +17,41 @@ package org.caffinitas.ohc.linked;
 
 import java.util.zip.CRC32;
 
-import net.jpountz.xxhash.XXHashFactory;
 import org.caffinitas.ohc.HashAlgorithm;
 
-abstract class Hasher
-{
-    static Hasher create(HashAlgorithm hashAlgorithm)
-    {
+import net.jpountz.xxhash.XXHashFactory;
+
+abstract class Hasher {
+    static Hasher create(HashAlgorithm hashAlgorithm) {
         String cls = forAlg(hashAlgorithm);
-        try
-        {
+        try {
             return (Hasher) Class.forName(cls).newInstance();
-        }
-        catch (ClassNotFoundException e)
-        {
-            if (hashAlgorithm == HashAlgorithm.XX)
-            {
+        } catch (ClassNotFoundException e) {
+            if (hashAlgorithm == HashAlgorithm.XX) {
                 cls = forAlg(HashAlgorithm.CRC32);
-                try
-                {
+                try {
                     return (Hasher) Class.forName(cls).newInstance();
-                }
-                catch (InstantiationException | ClassNotFoundException | IllegalAccessException e1)
-                {
+                } catch (InstantiationException | ClassNotFoundException | IllegalAccessException e1) {
                     throw new RuntimeException(e1);
                 }
             }
             throw new RuntimeException(e);
-        }
-        catch (InstantiationException | IllegalAccessException e)
-        {
+        } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static String forAlg(HashAlgorithm hashAlgorithm)
-    {
-        return Hasher.class.getName()
-                     + '$'
-                     + hashAlgorithm.name().substring(0, 1)
-                     + hashAlgorithm.name().substring(1).toLowerCase()
-                     + "Hash";
+    private static String forAlg(HashAlgorithm hashAlgorithm) {
+        return Hasher.class.getName() + '$' + hashAlgorithm.name().substring(0, 1) + hashAlgorithm.name().substring(1).toLowerCase() + "Hash";
     }
 
     abstract long hash(byte[] array);
 
     abstract long hash(long address, long offset, int length);
 
-    static final class Crc32Hash extends Hasher
-    {
-        long hash(byte[] array)
-        {
+    static final class Crc32Hash extends Hasher {
+        @Override
+        long hash(byte[] array) {
             CRC32 crc = new CRC32();
             crc.update(array);
             long h = crc.getValue();
@@ -75,16 +59,16 @@ abstract class Hasher
             return h;
         }
 
-        long hash(long address, long offset, int length)
-        {
+        @Override
+        long hash(long address, long offset, int length) {
             return Uns.crc32(address, offset, length);
         }
     }
 
-    static final class Murmur3Hash extends Hasher
-    {
-        long hash(byte[] array)
-        {
+    static final class Murmur3Hash extends Hasher {
+        @SuppressWarnings("fallthrough")
+        @Override
+        long hash(byte[] array) {
             int o = 0;
             int r = array.length;
 
@@ -92,8 +76,7 @@ abstract class Hasher
             long h2 = 0L;
             long k1, k2;
 
-            for (; r >= 16; r -= 16)
-            {
+            for (; r >= 16; r -= 16) {
                 k1 = getLong(array, o);
                 o += 8;
                 k2 = getLong(array, o);
@@ -114,12 +97,10 @@ abstract class Hasher
                 h2 = h2 * 5 + 0x38495ab5;
             }
 
-            if (r > 0)
-            {
+            if (r > 0) {
                 k1 = 0;
                 k2 = 0;
-                switch (r)
-                {
+                switch (r) {
                     case 15:
                         k2 ^= toLong(array[o + 14]) << 48; // fall through
                     case 14:
@@ -178,8 +159,7 @@ abstract class Hasher
             return h1;
         }
 
-        private static long getLong(byte[] array, int o)
-        {
+        private static long getLong(byte[] array, int o) {
             long l = toLong(array[o + 7]) << 56;
             l |= toLong(array[o + 6]) << 48;
             l |= toLong(array[o + 5]) << 40;
@@ -191,8 +171,9 @@ abstract class Hasher
             return l;
         }
 
-        long hash(long adr, long offset, int length)
-        {
+        @SuppressWarnings("fallthrough")
+        @Override
+        long hash(long adr, long offset, int length) {
             long o = offset;
             long r = length;
 
@@ -200,8 +181,7 @@ abstract class Hasher
             long h2 = 0L;
             long k1, k2;
 
-            for (; r >= 16; r -= 16)
-            {
+            for (; r >= 16; r -= 16) {
                 k1 = getLong(adr, o);
                 o += 8;
                 k2 = getLong(adr, o);
@@ -222,12 +202,10 @@ abstract class Hasher
                 h2 = h2 * 5 + 0x38495ab5;
             }
 
-            if (r > 0)
-            {
+            if (r > 0) {
                 k1 = 0;
                 k2 = 0;
-                switch ((int) r)
-                {
+                switch ((int) r) {
                     case 15:
                         k2 ^= toLong(Uns.getByte(adr, o + 14)) << 48; // fall through
                     case 14:
@@ -287,8 +265,7 @@ abstract class Hasher
             return h1;
         }
 
-        private static long getLong(long adr, long o)
-        {
+        private static long getLong(long adr, long o) {
             long l = toLong(Uns.getByte(adr, o + 7)) << 56;
             l |= toLong(Uns.getByte(adr, o + 6)) << 48;
             l |= toLong(Uns.getByte(adr, o + 5)) << 40;
@@ -299,11 +276,11 @@ abstract class Hasher
             l |= toLong(Uns.getByte(adr, o));
             return l;
         }
+
         static final long C1 = 0x87c37b91114253d5L;
         static final long C2 = 0x4cf5ad432745937fL;
 
-        static long fmix64(long k)
-        {
+        static long fmix64(long k) {
             k ^= k >>> 33;
             k *= 0xff51afd7ed558ccdL;
             k ^= k >>> 33;
@@ -312,39 +289,35 @@ abstract class Hasher
             return k;
         }
 
-        static long mixK1(long k1)
-        {
+        static long mixK1(long k1) {
             k1 *= C1;
             k1 = Long.rotateLeft(k1, 31);
             k1 *= C2;
             return k1;
         }
 
-        static long mixK2(long k2)
-        {
+        static long mixK2(long k2) {
             k2 *= C2;
             k2 = Long.rotateLeft(k2, 33);
             k2 *= C1;
             return k2;
         }
 
-        static long toLong(byte value)
-        {
+        static long toLong(byte value) {
             return value & 0xff;
         }
     }
 
-    static final class XxHash extends Hasher
-    {
+    static final class XxHash extends Hasher {
         private static final XXHashFactory xx = XXHashFactory.fastestInstance();
 
-        long hash(long address, long offset, int length)
-        {
+        @Override
+        long hash(long address, long offset, int length) {
             return xx.hash64().hash(Uns.directBufferFor(address, offset, length, true), 0);
         }
 
-        long hash(byte[] array)
-        {
+        @Override
+        long hash(byte[] array) {
             return xx.hash64().hash(array, 0, array.length, 0);
         }
     }

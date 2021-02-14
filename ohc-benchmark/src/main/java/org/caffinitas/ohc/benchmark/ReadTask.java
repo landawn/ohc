@@ -15,22 +15,20 @@
  */
 package org.caffinitas.ohc.benchmark;
 
-class ReadTask implements Task
-{
+class ReadTask implements Task {
     private final long key;
 
-    public ReadTask(long key)
-    {
+    public ReadTask(long key) {
         this.key = key;
     }
 
-    public int timer()
-    {
+    @Override
+    public int timer() {
         return 0;
     }
 
-    public Object call() throws Exception
-    {
+    @Override
+    public Object call() throws Exception {
         Shared.cache.get(key);
         return null;
     }

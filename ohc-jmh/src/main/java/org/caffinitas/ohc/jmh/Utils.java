@@ -19,43 +19,40 @@ import java.nio.ByteBuffer;
 
 import org.caffinitas.ohc.CacheSerializer;
 
-public final class Utils
-{
-    public static final CacheSerializer<byte[]> byteArraySerializer = new CacheSerializer<byte[]>()
-    {
-        public void serialize(byte[] bytes, ByteBuffer buf)
-        {
+public final class Utils {
+    public static final CacheSerializer<byte[]> byteArraySerializer = new CacheSerializer<byte[]>() {
+        @Override
+        public void serialize(byte[] bytes, ByteBuffer buf) {
             buf.putInt(bytes.length);
             buf.put(bytes);
         }
 
-        public byte[] deserialize(ByteBuffer buf)
-        {
+        @Override
+        public byte[] deserialize(ByteBuffer buf) {
             byte[] arr = new byte[buf.getInt()];
             buf.get(arr);
             return arr;
         }
 
-        public int serializedSize(byte[] bytes)
-        {
+        @Override
+        public int serializedSize(byte[] bytes) {
             return 4 + bytes.length;
         }
     };
 
-    public static final CacheSerializer<Integer> intSerializer = new CacheSerializer<Integer>()
-    {
-        public void serialize(Integer integer, ByteBuffer buf)
-        {
+    public static final CacheSerializer<Integer> intSerializer = new CacheSerializer<Integer>() {
+        @Override
+        public void serialize(Integer integer, ByteBuffer buf) {
             buf.putInt(integer);
         }
 
-        public Integer deserialize(ByteBuffer buf)
-        {
+        @Override
+        public Integer deserialize(ByteBuffer buf) {
             return buf.getInt();
         }
 
-        public int serializedSize(Integer integer)
-        {
+        @Override
+        public int serializedSize(Integer integer) {
             return 4;
         }
     };

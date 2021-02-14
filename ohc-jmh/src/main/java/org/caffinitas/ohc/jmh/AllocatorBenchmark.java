@@ -15,7 +15,6 @@
  */
 package org.caffinitas.ohc.jmh;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -43,8 +42,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @Threads(4)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Fork(value = 1, jvmArgsAppend = "-Xmx512M")
-public class AllocatorBenchmark
-{
+public class AllocatorBenchmark {
     @Param({ "128", /*"256", "512", "1024", "1536", "2048", "4096", */"8192" })
     private int size = 128;
     @Param({ "Unsafe", "JNA" })
@@ -53,83 +51,76 @@ public class AllocatorBenchmark
     private IAllocator allocator;
 
     @State(Scope.Thread)
-    public static class Rand extends FasterRandom
-    {}
+    public static class Rand extends FasterRandom {
+    }
 
     @State(Scope.Benchmark)
-    public static class Allocations
-    {
+    public static class Allocations {
         final AtomicLong[] adrs = new AtomicLong[1024];
         {
-            for (int i = 0; i < adrs.length; i++)
+            for (int i = 0; i < adrs.length; i++) {
                 adrs[i] = new AtomicLong();
+            }
         }
 
-        void allocate(IAllocator allocator, Rand rand, int size)
-        {
+        void allocate(IAllocator allocator, Rand rand, int size) {
             int idx = rand.nextInt(adrs.length);
 
             AtomicLong adr = adrs[idx];
 
-            while (true)
-            {
+            while (true) {
                 long a = adr.get();
-                if (a == 0L)
-                {
+                if (a == 0L) {
                     break;
                 }
-                if (adr.compareAndSet(a, 0L))
-                {
+                if (adr.compareAndSet(a, 0L)) {
                     allocator.free(a);
                     break;
                 }
             }
 
             long a = allocator.allocate(size);
-            if (!adr.compareAndSet(0L, a))
-            {
+            if (!adr.compareAndSet(0L, a)) {
                 allocator.free(a);
             }
         }
 
-        void freeAll(IAllocator allocator)
-        {
-            for (AtomicLong al : adrs)
-            {
+        void freeAll(IAllocator allocator) {
+            for (AtomicLong al : adrs) {
                 long adr = al.get();
-                if (adr != 0L)
+                if (adr != 0L) {
                     allocator.free(adr);
+                }
             }
         }
     }
 
     @Setup
-    public void createAllocator()
-    {
-        switch (allocatorType)
-        {
-            case "Unsafe": allocator = new UnsafeAllocator(); break;
-            case "JNA": allocator = new JNANativeAllocator(); break;
+    public void createAllocator() {
+        switch (allocatorType) {
+            case "Unsafe":
+                allocator = new UnsafeAllocator();
+                break;
+            case "JNA":
+                allocator = new JNANativeAllocator();
+                break;
         }
     }
 
     @TearDown
-    public void tearDown(Allocations allocations) throws IOException
-    {
+    public void tearDown(Allocations allocations) {
         allocations.freeAll(allocator);
     }
 
     @Benchmark
     @Threads(value = 1)
-    public void allocateSingleThreaded(Rand rand, Allocations state)
-    {
+    public void allocateSingleThreaded(Rand rand, Allocations state) {
         state.allocate(allocator, rand, size);
     }
 
     @Benchmark
     @Threads(value = 4)
-    public void allocateMultiThreaded(Rand rand, Allocations state)
-    {
+    public void allocateMultiThreaded(Rand rand, Allocations state) {
         state.allocate(allocator, rand, size);
     }
 }

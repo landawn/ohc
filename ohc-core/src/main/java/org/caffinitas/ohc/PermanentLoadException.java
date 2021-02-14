@@ -15,24 +15,21 @@
  */
 package org.caffinitas.ohc;
 
-public class PermanentLoadException extends Exception
-{
-    public PermanentLoadException()
-    {
+public class PermanentLoadException extends Exception {
+    private static final long serialVersionUID = -8375153028822333608L;
+
+    public PermanentLoadException() {
     }
 
-    public PermanentLoadException(Throwable cause)
-    {
+    public PermanentLoadException(Throwable cause) {
         super(cause);
     }
 
-    public PermanentLoadException(String message)
-    {
+    public PermanentLoadException(String message) {
         super(message);
     }
 
-    public PermanentLoadException(String message, Throwable cause)
-    {
+    public PermanentLoadException(String message, Throwable cause) {
         super(message, cause);
     }
 }

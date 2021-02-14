@@ -17,12 +17,10 @@ package org.caffinitas.ohc.linked;
 
 import sun.misc.Unsafe;
 
-abstract class UnsExt
-{
+abstract class UnsExt {
     final Unsafe unsafe;
 
-    UnsExt(Unsafe unsafe)
-    {
+    UnsExt(Unsafe unsafe) {
         this.unsafe = unsafe;
     }
 

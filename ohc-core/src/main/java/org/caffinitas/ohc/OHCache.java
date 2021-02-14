@@ -28,8 +28,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.caffinitas.ohc.histo.EstimatedHistogram;
 
-public interface OHCache<K, V> extends Closeable
-{
+public interface OHCache<K, V> extends Closeable {
     long USE_DEFAULT_EXPIRE_AT = -1L;
     long NEVER_EXPIRE = Long.MAX_VALUE;
 
@@ -164,7 +163,6 @@ public interface OHCache<K, V> extends Closeable
      * @return reference-counted byte buffer or {@code null} if key does not exist.
      */
     DirectValueAccess getDirect(K key, boolean updateLRU);
-
 
     // cache loader support
 

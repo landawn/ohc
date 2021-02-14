@@ -28,11 +28,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-public class UnsTest
-{
+public class UnsTest {
     @AfterMethod(alwaysRun = true)
-    public void deinit()
-    {
+    public void deinit() {
         Uns.clearUnsDebugForTest();
     }
 
@@ -41,10 +39,8 @@ public class UnsTest
     static final int CAPACITY = 65536;
     static final ByteBuffer directBuffer;
 
-    static
-    {
-        try
-        {
+    static {
+        try {
             Field field = Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
             unsafe = (Unsafe) field.get(null);
@@ -52,15 +48,12 @@ public class UnsTest
                 throw new RuntimeException("Address size " + unsafe.addressSize() + " not supported yet (max 8 bytes)");
 
             directBuffer = ByteBuffer.allocateDirect(CAPACITY);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new AssertionError(e);
         }
     }
 
-    private static void fillRandom()
-    {
+    private static void fillRandom() {
         Random r = new Random();
         directBuffer.clear();
         while (directBuffer.remaining() >= 4)
@@ -69,14 +62,12 @@ public class UnsTest
     }
 
     @Test
-    public void testDirectBufferFor() throws Exception
-    {
+    public void testDirectBufferFor() throws Exception {
         fillRandom();
 
         ByteBuffer buf = Uns.directBufferFor(((DirectBuffer) directBuffer).address(), directBuffer.capacity());
 
-        for (int i = 0; i < CAPACITY; i++)
-        {
+        for (int i = 0; i < CAPACITY; i++) {
             byte b = buf.get();
             byte d = directBuffer.get();
             assertEquals(b, d);
@@ -90,8 +81,7 @@ public class UnsTest
         buf.clear();
         directBuffer.clear();
 
-        while (buf.remaining() >= 8)
-        {
+        while (buf.remaining() >= 8) {
             long b = buf.getLong();
             long d = directBuffer.getLong();
             assertEquals(b, d);
@@ -100,8 +90,7 @@ public class UnsTest
             assertEquals(buf.remaining(), directBuffer.remaining());
         }
 
-        while (buf.remaining() >= 4)
-        {
+        while (buf.remaining() >= 4) {
             int b = buf.getInt();
             int d = directBuffer.getInt();
             assertEquals(b, d);
@@ -110,8 +99,7 @@ public class UnsTest
             assertEquals(buf.remaining(), directBuffer.remaining());
         }
 
-        for (int i = 0; i < CAPACITY; i++)
-        {
+        for (int i = 0; i < CAPACITY; i++) {
             byte b = buf.get(i);
             byte d = directBuffer.get(i);
             assertEquals(b, d);
@@ -152,41 +140,36 @@ public class UnsTest
     }
 
     @Test
-    public void testAllocate() throws Exception
-    {
+    public void testAllocate() throws Exception {
         ByteBuffer adr = Uns.allocate(100, true);
         assertNotNull(adr);
         Uns.free(adr);
     }
 
     @Test
-    public void testGetTotalAllocated() throws Exception
-    {
+    public void testGetTotalAllocated() throws Exception {
         long before = Uns.getTotalAllocated();
         if (before < 0L)
             return;
 
         // TODO Uns.getTotalAllocated() seems not to respect "small" areas - need to check that ... eventually.
-//        long[] adrs = new long[10000];
-//        try
-//        {
-//            for (int i=0;i<adrs.length;i++)
-//                adrs[i] = Uns.allocate(100);
-//            assertTrue(Uns.getTotalAllocated() > before);
-//        }
-//        finally
-//        {
-//            for (long adr : adrs)
-//                Uns.free(adr);
-//        }
+        //        long[] adrs = new long[10000];
+        //        try
+        //        {
+        //            for (int i=0;i<adrs.length;i++)
+        //                adrs[i] = Uns.allocate(100);
+        //            assertTrue(Uns.getTotalAllocated() > before);
+        //        }
+        //        finally
+        //        {
+        //            for (long adr : adrs)
+        //                Uns.free(adr);
+        //        }
 
         ByteBuffer adr = Uns.allocate(128 * 1024 * 1024, true);
-        try
-        {
+        try {
             assertTrue(Uns.getTotalAllocated() > before);
-        }
-        finally
-        {
+        } finally {
             Uns.free(adr);
         }
     }

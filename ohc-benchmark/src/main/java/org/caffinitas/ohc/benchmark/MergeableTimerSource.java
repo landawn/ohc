@@ -23,51 +23,42 @@ import com.codahale.metrics.Clock;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.UniformReservoir;
 
-public final class MergeableTimerSource
-{
+public final class MergeableTimerSource {
     private final Clock clock;
     private final AtomicLong count;
     private final AtomicReference<Histogram> histogram;
 
-    public MergeableTimerSource()
-    {
+    public MergeableTimerSource() {
         this.clock = Clock.defaultClock();
         this.count = new AtomicLong();
         this.histogram = new AtomicReference<>(new Histogram(new UniformReservoir()));
     }
 
-    public <T> T time(Callable<T> event) throws Exception
-    {
+    public <T> T time(Callable<T> event) throws Exception {
         final long startTime = clock.getTick();
-        try
-        {
+        try {
             return event.call();
-        }
-        finally
-        {
+        } finally {
             update(clock.getTick() - startTime);
         }
     }
 
-    public void mergeTo(MergeableTimer timer)
-    {
+    public void mergeTo(MergeableTimer timer) {
         Histogram hist = this.histogram.getAndSet(new Histogram(new UniformReservoir()));
-        for (long l : hist.getSnapshot().getValues())
+        for (long l : hist.getSnapshot().getValues()) {
             timer.histogram.update(l);
+        }
         timer.meter.mark(count.getAndSet(0L));
     }
 
-    private void update(long duration)
-    {
-        if (duration >= 0)
-        {
+    private void update(long duration) {
+        if (duration >= 0) {
             histogram.get().update(duration);
             count.incrementAndGet();
         }
     }
 
-    public void clear()
-    {
+    public void clear() {
         this.histogram.set(new Histogram(new UniformReservoir()));
         this.count.set(0L);
     }

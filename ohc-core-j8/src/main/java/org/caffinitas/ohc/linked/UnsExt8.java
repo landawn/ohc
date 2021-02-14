@@ -19,25 +19,24 @@ import java.util.zip.CRC32;
 
 import sun.misc.Unsafe;
 
-final class UnsExt8 extends UnsExt
-{
-    UnsExt8(Unsafe unsafe)
-    {
+@SuppressWarnings("restriction")
+final class UnsExt8 extends UnsExt {
+    UnsExt8(Unsafe unsafe) {
         super(unsafe);
     }
 
-    long getAndPutLong(long address, long offset, long value)
-    {
+    @Override
+    long getAndPutLong(long address, long offset, long value) {
         return unsafe.getAndSetLong(null, address + offset, value);
     }
 
-    int getAndAddInt(long address, long offset, int value)
-    {
+    @Override
+    int getAndAddInt(long address, long offset, int value) {
         return unsafe.getAndAddInt(null, address + offset, value);
     }
 
-    long crc32(long address, long offset, long len)
-    {
+    @Override
+    long crc32(long address, long offset, long len) {
         CRC32 crc = new CRC32();
         crc.update(Uns.directBufferFor(address, offset, len, true));
         long h = crc.getValue();

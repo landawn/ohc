@@ -15,6 +15,10 @@
  */
 package org.caffinitas.ohc.linked;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,25 +33,19 @@ import org.caffinitas.ohc.OHCacheBuilder;
 import org.caffinitas.ohc.TestTicker;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
-public class TimeoutsTest
-{
+public class TimeoutsTest {
     @Test
-    public void testTimeouts() throws InterruptedException
-    {
+    public void testTimeouts() {
         TestTicker ticker = new TestTicker();
 
         Timeouts timeouts = new Timeouts(ticker, 64, 128);
-        try
-        {
+        try {
             long now = ticker.currentTimeMillis();
 
             long in1000 = now + 1000L;
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 1000; i++) {
                 timeouts.add(5000 + i, in1000);
+            }
 
             timeouts.add(42L, now);
             long in50 = now + 50;
@@ -56,10 +54,9 @@ public class TimeoutsTest
             timeouts.add(144L, in50);
 
             final List<Long> ll = new ArrayList<>();
-            timeouts.removeExpired(new Timeouts.TimeoutHandler()
-            {
-                public void expired(long hashEntryAdr)
-                {
+            timeouts.removeExpired(new Timeouts.TimeoutHandler() {
+                @Override
+                public void expired(long hashEntryAdr) {
                     ll.add(hashEntryAdr);
                 }
             });
@@ -68,10 +65,9 @@ public class TimeoutsTest
             assertEquals(ll.get(0), Long.valueOf(42L));
 
             ll.clear();
-            timeouts.removeExpired(new Timeouts.TimeoutHandler()
-            {
-                public void expired(long hashEntryAdr)
-                {
+            timeouts.removeExpired(new Timeouts.TimeoutHandler() {
+                @Override
+                public void expired(long hashEntryAdr) {
                     ll.add(hashEntryAdr);
                 }
             });
@@ -82,10 +78,9 @@ public class TimeoutsTest
             ticker.addMillis(100L);
 
             ll.clear();
-            timeouts.removeExpired(new Timeouts.TimeoutHandler()
-            {
-                public void expired(long hashEntryAdr)
-                {
+            timeouts.removeExpired(new Timeouts.TimeoutHandler() {
+                @Override
+                public void expired(long hashEntryAdr) {
                     ll.add(hashEntryAdr);
                 }
             });
@@ -96,10 +91,9 @@ public class TimeoutsTest
             assertTrue(ll.containsAll(Arrays.asList(142L, 144L)));
 
             ll.clear();
-            timeouts.removeExpired(new Timeouts.TimeoutHandler()
-            {
-                public void expired(long hashEntryAdr)
-                {
+            timeouts.removeExpired(new Timeouts.TimeoutHandler() {
+                @Override
+                public void expired(long hashEntryAdr) {
                     ll.add(hashEntryAdr);
                 }
             });
@@ -110,33 +104,28 @@ public class TimeoutsTest
             ticker.addMillis(1000L);
 
             ll.clear();
-            timeouts.removeExpired(new Timeouts.TimeoutHandler()
-            {
-                public void expired(long hashEntryAdr)
-                {
+            timeouts.removeExpired(new Timeouts.TimeoutHandler() {
+                @Override
+                public void expired(long hashEntryAdr) {
                     ll.add(hashEntryAdr);
                 }
             });
             assertEquals(ll.size(), 1000);
-        }
-        finally
-        {
+        } finally {
             timeouts.release();
         }
     }
 
     @Test
-    public void testGet() throws Exception
-    {
+    public void testGet() throws Exception {
         TestTicker ticker = new TestTicker();
 
-        try (OHCache<Integer, String> cache = OHCacheBuilder.<Integer, String>newBuilder()
-                                              .keySerializer(TestUtils.intSerializer)
-                                              .valueSerializer(TestUtils.stringSerializer)
-                                              .ticker(ticker)
-                                              .timeouts(true)
-                                              .build())
-        {
+        try (OHCache<Integer, String> cache = OHCacheBuilder.<Integer, String> newBuilder()
+                .keySerializer(TestUtils.intSerializer)
+                .valueSerializer(TestUtils.stringSerializer)
+                .ticker(ticker)
+                .timeouts(true)
+                .build()) {
             cache.put(1, "one", ticker.currentTimeMillis() - 1);
             assertNull(cache.get(1));
 
@@ -148,38 +137,39 @@ public class TimeoutsTest
     }
 
     @Test
-    public void testExpireVsEvict() throws Exception
-    {
+    public void testExpireVsEvict() throws Exception {
         char[] chars = new char[900];
-        for (int i = 0; i < chars.length; i++)
+        for (int i = 0; i < chars.length; i++) {
             chars[i] = (char) ('A' + i % 26);
+        }
         String v = new String(chars);
 
         TestTicker ticker = new TestTicker();
 
-        try (OHCache<Integer, String> cache = OHCacheBuilder.<Integer, String>newBuilder()
-                                              .keySerializer(TestUtils.intSerializer)
-                                              .valueSerializer(TestUtils.stringSerializer)
-                                              .capacity(1024 * 1024)
-                                              .segmentCount(1)
-                                              .ticker(ticker)
-                                              .timeouts(true)
-                                              .build())
-        {
+        try (OHCache<Integer, String> cache = OHCacheBuilder.<Integer, String> newBuilder()
+                .keySerializer(TestUtils.intSerializer)
+                .valueSerializer(TestUtils.stringSerializer)
+                .capacity(1024 * 1024)
+                .segmentCount(1)
+                .ticker(ticker)
+                .timeouts(true)
+                .build()) {
             long expireAt = ticker.currentTimeMillis() + 250;
 
             int i;
 
             // fill half of the cache with expiring entries
-            for (i = 0; cache.freeCapacity() > cache.capacity() / 2 + 950; i++)
+            for (i = 0; cache.freeCapacity() > cache.capacity() / 2 + 950; i++) {
                 cache.put(i, v, expireAt);
+            }
             int k = i;
 
-            assertEquals(((OHCacheLinkedImpl)cache).usedTimeouts(), k);
+            assertEquals(((OHCacheLinkedImpl) cache).usedTimeouts(), k);
 
             // fill other half of the cache with non-expiring entries
-            for (int n = 0; n < k; n++, i++)
+            for (int n = 0; n < k; n++, i++) {
                 cache.put(i, v);
+            }
 
             long remain = expireAt - ticker.currentTimeMillis();
             assertTrue(remain >= 100, "Sorry, your machine is a bit too slow...");
@@ -189,40 +179,37 @@ public class TimeoutsTest
             // let the expiring entries expire
             ticker.addMillis(remain);
 
-            assertEquals(((OHCacheLinkedImpl)cache).usedTimeouts(), k);
+            assertEquals(((OHCacheLinkedImpl) cache).usedTimeouts(), k);
 
             // add as many entries as expiring entries are there
-            for (int n = 0; n < k; n++, i++)
-            {
+            for (int n = 0; n < k; n++, i++) {
                 cache.put(i, v);
-                if ((n % 10000) == 0)
+                if ((n % 10000) == 0) {
                     assertEquals(cache.stats().getEvictionCount(), 0L, "cleanup triggered");
+                }
             }
 
             assertEquals(cache.stats().getExpireCount(), k, "wrong expired entries count");
             assertEquals(cache.stats().getEvictionCount(), 0L, "cleanup triggered");
-            assertEquals(((OHCacheLinkedImpl)cache).usedTimeouts(), 0);
+            assertEquals(((OHCacheLinkedImpl) cache).usedTimeouts(), 0);
         }
     }
 
     @Test
-    public void testGetWithLoader() throws Exception
-    {
+    public void testGetWithLoader() throws Exception {
         // NOTE: cannot use TestTicker instance here, because the test relies on the behaviour of java.util.concurrent.Future
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
-        try (OHCache<Integer, String> cache = OHCacheBuilder.<Integer, String>newBuilder()
-                                              .keySerializer(TestUtils.intSerializer)
-                                              .valueSerializer(TestUtils.stringSerializer)
-                                              .executorService(executorService)
-                                              .timeouts(true)
-                                              .build())
-        {
+        try (OHCache<Integer, String> cache = OHCacheBuilder.<Integer, String> newBuilder()
+                .keySerializer(TestUtils.intSerializer)
+                .valueSerializer(TestUtils.stringSerializer)
+                .executorService(executorService)
+                .timeouts(true)
+                .build()) {
             // expires before loader starts
-            Future<String> f = cache.getWithLoaderAsync(1, new CacheLoader<Integer, String>()
-            {
-                public String load(Integer key) throws Exception
-                {
+            Future<String> f = cache.getWithLoaderAsync(1, new CacheLoader<Integer, String>() {
+                @Override
+                public String load(Integer key) throws Exception {
                     return "one";
                 }
             }, System.currentTimeMillis() - 1);
@@ -230,10 +217,9 @@ public class TimeoutsTest
             assertNull(cache.get(1));
 
             // expires after loader finishes
-            f = cache.getWithLoaderAsync(2, new CacheLoader<Integer, String>()
-            {
-                public String load(Integer key) throws Exception
-                {
+            f = cache.getWithLoaderAsync(2, new CacheLoader<Integer, String>() {
+                @Override
+                public String load(Integer key) throws Exception {
                     Thread.sleep(50);
                     return "two";
                 }
@@ -245,19 +231,16 @@ public class TimeoutsTest
             assertNull(cache.get(2));
 
             // expires before loader finishes
-            f = cache.getWithLoaderAsync(3, new CacheLoader<Integer, String>()
-            {
-                public String load(Integer key) throws Exception
-                {
+            f = cache.getWithLoaderAsync(3, new CacheLoader<Integer, String>() {
+                @Override
+                public String load(Integer key) throws Exception {
                     Thread.sleep(5);
                     return "three";
                 }
             }, System.currentTimeMillis() + 2);
             assertNull(f.get());
             assertNull(cache.get(3));
-        }
-        finally
-        {
+        } finally {
             executorService.shutdown();
         }
     }

@@ -21,66 +21,68 @@ import org.caffinitas.ohc.CacheSerializer;
 
 public final class BenchmarkUtils {
     public static final CacheSerializer<byte[]> serializer = new CacheSerializer<byte[]>() {
+        @Override
         public void serialize(byte[] bytes, ByteBuffer buf) {
             buf.putInt(bytes.length);
             buf.put(bytes);
         }
 
+        @Override
         public byte[] deserialize(ByteBuffer buf) {
             byte[] bytes = new byte[buf.getInt()];
             buf.get(bytes);
             return bytes;
         }
 
+        @Override
         public int serializedSize(byte[] t) {
             return t.length + 4;
         }
     };
 
-    public static final CacheSerializer<Long> longSerializer = new CacheSerializer<Long>()
-    {
-        public void serialize(Long val, ByteBuffer buf)
-        {
+    public static final CacheSerializer<Long> longSerializer = new CacheSerializer<Long>() {
+        @Override
+        public void serialize(Long val, ByteBuffer buf) {
             buf.putLong(val);
         }
 
-        public Long deserialize(ByteBuffer buf)
-        {
+        @Override
+        public Long deserialize(ByteBuffer buf) {
             return buf.getLong();
         }
 
-        public int serializedSize(Long value)
-        {
+        @Override
+        public int serializedSize(Long value) {
             return 8;
         }
     };
 
-    public static class KeySerializer implements CacheSerializer<Long>
-    {
+    public static class KeySerializer implements CacheSerializer<Long> {
         private final int keyLen;
 
-        public KeySerializer(int keyLen)
-        {
+        public KeySerializer(int keyLen) {
             this.keyLen = keyLen;
         }
 
-        public void serialize(Long val, ByteBuffer buf)
-        {
+        @Override
+        public void serialize(Long val, ByteBuffer buf) {
             buf.putLong(val);
-            for (int i = 0; i < keyLen; i++)
-                buf.put((byte)(0 & 0xff));
+            for (int i = 0; i < keyLen; i++) {
+                buf.put((byte) (0 & 0xff));
+            }
         }
 
-        public Long deserialize(ByteBuffer buf)
-        {
+        @Override
+        public Long deserialize(ByteBuffer buf) {
             long v = buf.getLong();
-            for (int i = 0; i < keyLen; i++)
+            for (int i = 0; i < keyLen; i++) {
                 buf.get();
+            }
             return v;
         }
 
-        public int serializedSize(Long value)
-        {
+        @Override
+        public int serializedSize(Long value) {
             return 8 + keyLen;
         }
     }

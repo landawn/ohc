@@ -15,8 +15,7 @@
  */
 package org.caffinitas.ohc;
 
-public interface Ticker
-{
+public interface Ticker {
     Ticker DEFAULT = new DefaultTicker();
 
     long nanos();
@@ -24,17 +23,16 @@ public interface Ticker
     long currentTimeMillis();
 }
 
-final class DefaultTicker implements Ticker
-{
+final class DefaultTicker implements Ticker {
     static final DefaultTicker INSTANCE = new DefaultTicker();
 
-    public long nanos()
-    {
+    @Override
+    public long nanos() {
         return System.nanoTime();
     }
 
-    public long currentTimeMillis()
-    {
+    @Override
+    public long currentTimeMillis() {
         return System.currentTimeMillis();
     }
 }

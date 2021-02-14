@@ -15,10 +15,9 @@
  */
 package org.caffinitas.ohc.chunked;
 
-final class Util
-{
+final class Util {
 
-// Hash entries
+    // Hash entries
 
     // timestamp when chunk has been last accessed for read
     static final int CHUNK_OFF_TIMESTAMP = 0;
@@ -48,28 +47,22 @@ final class Util
     // variable-size: offset of data in first block
     static final int ENTRY_OFF_DATA_VARIABLE = 24;
 
-    static int allocLen(int keyLen, int valueLen, boolean fixedEntrySize)
-    {
+    static int allocLen(int keyLen, int valueLen, boolean fixedEntrySize) {
         return entryOffData(fixedEntrySize) + keyLen + valueLen;
     }
 
-    static int entryOffData(boolean fixedEntrySize)
-    {
+    static int entryOffData(boolean fixedEntrySize) {
         return fixedEntrySize ? ENTRY_OFF_DATA_FIXED : ENTRY_OFF_DATA_VARIABLE;
     }
 
-    static int bitNum(long val)
-    {
+    static int bitNum(long val) {
         int bit = 0;
         for (; val != 0L; bit++)
             val >>>= 1;
         return bit;
     }
 
-    static long roundUpToPowerOf2(long number, long max)
-    {
-        return number >= max
-               ? max
-               : (number > 1) ? Long.highestOneBit((number - 1) << 1) : 1;
+    static long roundUpToPowerOf2(long number, long max) {
+        return number >= max ? max : (number > 1) ? Long.highestOneBit((number - 1) << 1) : 1;
     }
 }

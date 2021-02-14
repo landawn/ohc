@@ -160,8 +160,7 @@ import org.caffinitas.ohc.linked.OHCacheLinkedImpl;
  * @param <K> cache key type
  * @param <V> cache value type
  */
-public class OHCacheBuilder<K, V>
-{
+public class OHCacheBuilder<K, V> {
     private int segmentCount;
     private int hashTableSize = 8192;
     private long capacity;
@@ -185,8 +184,7 @@ public class OHCacheBuilder<K, V>
     private int frequencySketchSize;
     private double edenSize = 0.2d;
 
-    private OHCacheBuilder()
-    {
+    private OHCacheBuilder() {
         int cpus = Runtime.getRuntime().availableProcessors();
 
         segmentCount = roundUpToPowerOf2(cpus * 2, 1 << 30);
@@ -212,350 +210,279 @@ public class OHCacheBuilder<K, V>
 
     public static final String SYSTEM_PROPERTY_PREFIX = "org.caffinitas.ohc.";
 
-    private static float fromSystemProperties(String name, float defaultValue)
-    {
-        try
-        {
+    private static float fromSystemProperties(String name, float defaultValue) {
+        try {
             return Float.parseFloat(System.getProperty(SYSTEM_PROPERTY_PREFIX + name, Float.toString(defaultValue)));
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to parse system property " + SYSTEM_PROPERTY_PREFIX + name, e);
         }
     }
 
-    private static long fromSystemProperties(String name, long defaultValue)
-    {
-        try
-        {
+    private static long fromSystemProperties(String name, long defaultValue) {
+        try {
             return Long.parseLong(System.getProperty(SYSTEM_PROPERTY_PREFIX + name, Long.toString(defaultValue)));
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to parse system property " + SYSTEM_PROPERTY_PREFIX + name, e);
         }
     }
 
-    private static int fromSystemProperties(String name, int defaultValue)
-    {
-        try
-        {
+    private static int fromSystemProperties(String name, int defaultValue) {
+        try {
             return Integer.parseInt(System.getProperty(SYSTEM_PROPERTY_PREFIX + name, Integer.toString(defaultValue)));
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to parse system property " + SYSTEM_PROPERTY_PREFIX + name, e);
         }
     }
 
-    private static double fromSystemProperties(String name, double defaultValue)
-    {
-        try
-        {
+    private static double fromSystemProperties(String name, double defaultValue) {
+        try {
             return Double.parseDouble(System.getProperty(SYSTEM_PROPERTY_PREFIX + name, Double.toString(defaultValue)));
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to parse system property " + SYSTEM_PROPERTY_PREFIX + name, e);
         }
     }
 
-    private static boolean fromSystemProperties(String name, boolean defaultValue)
-    {
-        try
-        {
+    private static boolean fromSystemProperties(String name, boolean defaultValue) {
+        try {
             return Boolean.parseBoolean(System.getProperty(SYSTEM_PROPERTY_PREFIX + name, Boolean.toString(defaultValue)));
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to parse system property " + SYSTEM_PROPERTY_PREFIX + name, e);
         }
     }
 
-    private static String fromSystemProperties(String name, String defaultValue)
-    {
+    private static String fromSystemProperties(String name, String defaultValue) {
         return System.getProperty(SYSTEM_PROPERTY_PREFIX + name, defaultValue);
     }
 
-    private static <E extends Enum> E fromSystemProperties(String name, E defaultValue, Class<E> type)
-    {
+    private static <E extends Enum> E fromSystemProperties(String name, E defaultValue, Class<E> type) {
         String value = fromSystemProperties(name, defaultValue.name());
         return (E) Enum.valueOf(type, value.toUpperCase());
     }
 
-    static int roundUpToPowerOf2(int number, int max)
-    {
-        return number >= max
-               ? max
-               : (number > 1) ? Integer.highestOneBit((number - 1) << 1) : 1;
+    static int roundUpToPowerOf2(int number, int max) {
+        return number >= max ? max : (number > 1) ? Integer.highestOneBit((number - 1) << 1) : 1;
     }
 
-    public static <K, V> OHCacheBuilder<K, V> newBuilder()
-    {
+    public static <K, V> OHCacheBuilder<K, V> newBuilder() {
         return new OHCacheBuilder<>();
     }
 
-    public OHCache<K, V> build()
-    {
-        if (fixedKeySize > 0 || fixedValueSize > 0|| chunkSize > 0)
+    public OHCache<K, V> build() {
+        if (fixedKeySize > 0 || fixedValueSize > 0 || chunkSize > 0)
             return new OHCacheChunkedImpl<>(this);
         return new OHCacheLinkedImpl<>(this);
     }
 
-    public int getHashTableSize()
-    {
+    public int getHashTableSize() {
         return hashTableSize;
     }
 
-    public OHCacheBuilder<K, V> hashTableSize(int hashTableSize)
-    {
+    public OHCacheBuilder<K, V> hashTableSize(int hashTableSize) {
         if (hashTableSize < -1)
             throw new IllegalArgumentException("hashTableSize:" + hashTableSize);
         this.hashTableSize = hashTableSize;
         return this;
     }
 
-    public int getChunkSize()
-    {
+    public int getChunkSize() {
         return chunkSize;
     }
 
-    public OHCacheBuilder<K, V> chunkSize(int chunkSize)
-    {
+    public OHCacheBuilder<K, V> chunkSize(int chunkSize) {
         if (chunkSize < -1)
             throw new IllegalArgumentException("chunkSize:" + chunkSize);
         this.chunkSize = chunkSize;
         return this;
     }
 
-    public long getCapacity()
-    {
+    public long getCapacity() {
         return capacity;
     }
 
-    public OHCacheBuilder<K, V> capacity(long capacity)
-    {
+    public OHCacheBuilder<K, V> capacity(long capacity) {
         if (capacity <= 0)
             throw new IllegalArgumentException("capacity:" + capacity);
         this.capacity = capacity;
         return this;
     }
 
-    public CacheSerializer<K> getKeySerializer()
-    {
+    public CacheSerializer<K> getKeySerializer() {
         return keySerializer;
     }
 
-    public OHCacheBuilder<K, V> keySerializer(CacheSerializer<K> keySerializer)
-    {
+    public OHCacheBuilder<K, V> keySerializer(CacheSerializer<K> keySerializer) {
         this.keySerializer = keySerializer;
         return this;
     }
 
-    public CacheSerializer<V> getValueSerializer()
-    {
+    public CacheSerializer<V> getValueSerializer() {
         return valueSerializer;
     }
 
-    public OHCacheBuilder<K, V> valueSerializer(CacheSerializer<V> valueSerializer)
-    {
+    public OHCacheBuilder<K, V> valueSerializer(CacheSerializer<V> valueSerializer) {
         this.valueSerializer = valueSerializer;
         return this;
     }
 
-    public int getSegmentCount()
-    {
+    public int getSegmentCount() {
         return segmentCount;
     }
 
-    public OHCacheBuilder<K, V> segmentCount(int segmentCount)
-    {
+    public OHCacheBuilder<K, V> segmentCount(int segmentCount) {
         if (segmentCount < -1)
             throw new IllegalArgumentException("segmentCount:" + segmentCount);
         this.segmentCount = segmentCount;
         return this;
     }
 
-    public float getLoadFactor()
-    {
+    public float getLoadFactor() {
         return loadFactor;
     }
 
-    public OHCacheBuilder<K, V> loadFactor(float loadFactor)
-    {
+    public OHCacheBuilder<K, V> loadFactor(float loadFactor) {
         if (loadFactor <= 0f)
             throw new IllegalArgumentException("loadFactor:" + loadFactor);
         this.loadFactor = loadFactor;
         return this;
     }
 
-    public long getMaxEntrySize()
-    {
+    public long getMaxEntrySize() {
         return maxEntrySize;
     }
 
-    public OHCacheBuilder<K, V> maxEntrySize(long maxEntrySize)
-    {
+    public OHCacheBuilder<K, V> maxEntrySize(long maxEntrySize) {
         if (maxEntrySize < 0)
             throw new IllegalArgumentException("maxEntrySize:" + maxEntrySize);
         this.maxEntrySize = maxEntrySize;
         return this;
     }
 
-    public int getFixedKeySize()
-    {
+    public int getFixedKeySize() {
         return fixedKeySize;
     }
 
-    public int getFixedValueSize()
-    {
+    public int getFixedValueSize() {
         return fixedValueSize;
     }
 
-    public OHCacheBuilder<K, V> fixedEntrySize(int fixedKeySize, int fixedValueSize)
-    {
-        if ((fixedKeySize > 0 || fixedValueSize > 0) &&
-            (fixedKeySize <= 0 || fixedValueSize <= 0))
-            throw new IllegalArgumentException("fixedKeySize:" + fixedKeySize+",fixedValueSize:" + fixedValueSize);
+    public OHCacheBuilder<K, V> fixedEntrySize(int fixedKeySize, int fixedValueSize) {
+        if ((fixedKeySize > 0 || fixedValueSize > 0) && (fixedKeySize <= 0 || fixedValueSize <= 0))
+            throw new IllegalArgumentException("fixedKeySize:" + fixedKeySize + ",fixedValueSize:" + fixedValueSize);
         this.fixedKeySize = fixedKeySize;
         this.fixedValueSize = fixedValueSize;
         return this;
     }
 
-    public ScheduledExecutorService getExecutorService()
-    {
+    public ScheduledExecutorService getExecutorService() {
         return executorService;
     }
 
-    public OHCacheBuilder<K, V> executorService(ScheduledExecutorService executorService)
-    {
+    public OHCacheBuilder<K, V> executorService(ScheduledExecutorService executorService) {
         this.executorService = executorService;
         return this;
     }
 
-    public HashAlgorithm getHashAlgorighm()
-    {
+    public HashAlgorithm getHashAlgorighm() {
         return hashAlgorighm;
     }
 
-    public OHCacheBuilder<K, V> hashMode(HashAlgorithm hashMode)
-    {
+    public OHCacheBuilder<K, V> hashMode(HashAlgorithm hashMode) {
         if (hashMode == null)
             throw new NullPointerException("hashMode");
         this.hashAlgorighm = hashMode;
         return this;
     }
 
-    public boolean isThrowOOME()
-    {
+    public boolean isThrowOOME() {
         return throwOOME;
     }
 
-    public OHCacheBuilder<K, V> throwOOME(boolean throwOOME)
-    {
+    public OHCacheBuilder<K, V> throwOOME(boolean throwOOME) {
         this.throwOOME = throwOOME;
         return this;
     }
 
-    public boolean isUnlocked()
-    {
+    public boolean isUnlocked() {
         return unlocked;
     }
 
-    public OHCacheBuilder<K, V> unlocked(boolean unlocked)
-    {
+    public OHCacheBuilder<K, V> unlocked(boolean unlocked) {
         this.unlocked = unlocked;
         return this;
     }
 
-    public long getDefaultTTLmillis()
-    {
+    public long getDefaultTTLmillis() {
         return defaultTTLmillis;
     }
 
-    public OHCacheBuilder<K, V> defaultTTLmillis(long defaultTTLmillis)
-    {
+    public OHCacheBuilder<K, V> defaultTTLmillis(long defaultTTLmillis) {
         this.defaultTTLmillis = defaultTTLmillis;
         return this;
     }
 
-    public boolean isTimeouts()
-    {
+    public boolean isTimeouts() {
         return timeouts;
     }
 
-    public OHCacheBuilder<K, V> timeouts(boolean timeouts)
-    {
+    public OHCacheBuilder<K, V> timeouts(boolean timeouts) {
         this.timeouts = timeouts;
         return this;
     }
 
-    public int getTimeoutsSlots()
-    {
+    public int getTimeoutsSlots() {
         return timeoutsSlots;
     }
 
-    public OHCacheBuilder<K, V> timeoutsSlots(int timeoutsSlots)
-    {
+    public OHCacheBuilder<K, V> timeoutsSlots(int timeoutsSlots) {
         if (timeoutsSlots > 0)
             this.timeouts = true;
         this.timeoutsSlots = timeoutsSlots;
         return this;
     }
 
-    public int getTimeoutsPrecision()
-    {
+    public int getTimeoutsPrecision() {
         return timeoutsPrecision;
     }
 
-    public OHCacheBuilder<K, V> timeoutsPrecision(int timeoutsPrecision)
-    {
+    public OHCacheBuilder<K, V> timeoutsPrecision(int timeoutsPrecision) {
         if (timeoutsPrecision > 0)
             this.timeouts = true;
         this.timeoutsPrecision = timeoutsPrecision;
         return this;
     }
 
-    public Ticker getTicker()
-    {
+    public Ticker getTicker() {
         return ticker;
     }
 
-    public OHCacheBuilder<K, V> ticker(Ticker ticker)
-    {
+    public OHCacheBuilder<K, V> ticker(Ticker ticker) {
         this.ticker = ticker;
         return this;
     }
 
-    public Eviction getEviction()
-    {
+    public Eviction getEviction() {
         return eviction;
     }
 
-    public OHCacheBuilder<K, V> eviction(Eviction eviction)
-    {
+    public OHCacheBuilder<K, V> eviction(Eviction eviction) {
         this.eviction = eviction;
         return this;
     }
 
-    public int getFrequencySketchSize()
-    {
+    public int getFrequencySketchSize() {
         return frequencySketchSize;
     }
 
-    public OHCacheBuilder<K, V> frequencySketchSize(int frequencySketchSize)
-    {
+    public OHCacheBuilder<K, V> frequencySketchSize(int frequencySketchSize) {
         this.frequencySketchSize = frequencySketchSize;
         return this;
     }
 
-    public double getEdenSize()
-    {
+    public double getEdenSize() {
         return edenSize;
     }
 
-    public OHCacheBuilder<K, V> edenSize(double edenSize)
-    {
+    public OHCacheBuilder<K, V> edenSize(double edenSize) {
         this.edenSize = edenSize;
         return this;
     }

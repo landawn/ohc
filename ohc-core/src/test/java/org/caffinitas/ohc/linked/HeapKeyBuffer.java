@@ -17,67 +17,66 @@ package org.caffinitas.ohc.linked;
 
 import java.util.Arrays;
 
-final class HeapKeyBuffer
-{
+final class HeapKeyBuffer {
     private final byte[] array;
     private long hash;
 
-    HeapKeyBuffer(byte[] bytes)
-    {
+    HeapKeyBuffer(byte[] bytes) {
         array = bytes;
     }
 
-    byte[] array()
-    {
+    byte[] array() {
         return array;
     }
 
-    int size()
-    {
+    int size() {
         return array.length;
     }
 
-    long hash()
-    {
+    long hash() {
         return hash;
     }
 
-    HeapKeyBuffer finish(Hasher hasher)
-    {
+    HeapKeyBuffer finish(Hasher hasher) {
         hash = hasher.hash(array);
 
         return this;
     }
 
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         HeapKeyBuffer keyBuffer = (HeapKeyBuffer) o;
 
         return Arrays.equals(array, keyBuffer.array);
     }
 
-    public int hashCode()
-    {
+    @Override
+    public int hashCode() {
         return (int) hash;
     }
 
-    static String padToEight(int val)
-    {
+    static String padToEight(int val) {
         String str = Integer.toBinaryString(val & 0xff);
-        while (str.length() < 8)
+        while (str.length() < 8) {
             str = '0' + str;
+        }
         return str;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int ii = 0; ii < array.length; ii++) {
-            if (ii % 8 == 0 && ii != 0) sb.append('\n');
+            if (ii % 8 == 0 && ii != 0) {
+                sb.append('\n');
+            }
             sb.append(padToEight(array[ii]));
             sb.append(' ');
         }

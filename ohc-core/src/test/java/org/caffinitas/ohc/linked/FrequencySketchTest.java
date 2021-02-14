@@ -18,33 +18,29 @@
  */
 package org.caffinitas.ohc.linked;
 
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-
 /**
  * @author ben.manes@gmail.com (Ben Manes)
  */
-public final class FrequencySketchTest
-{
+public final class FrequencySketchTest {
     @AfterMethod(alwaysRun = true)
-    public void deinit()
-    {
+    public void deinit() {
         Uns.clearUnsDebugForTest();
     }
 
     final Integer item = ThreadLocalRandom.current().nextInt();
 
     @Test
-    public void testConstruc()
-    {
+    public void testConstruc() {
         FrequencySketch sketch = new FrequencySketch(512);
         assertThat(sketch.tableOffset, not(0L));
         int size = sketch.tableLength;
@@ -55,176 +51,136 @@ public final class FrequencySketchTest
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testEnsureCapacity_negative()
-    {
+    public void testEnsureCapacity_negative() {
         FrequencySketch sketch = makeSketch(-1);
         sketch.release();
     }
 
     @Test
-    public void testLowerIndexOfBits()
-    {
+    public void testLowerIndexOfBits() {
         FrequencySketch sketch = new FrequencySketch(65536);
-        try
-        {
+        try {
             ThreadLocalRandom rand = ThreadLocalRandom.current();
-            for (int i = 0; i < 4; i++)
-            {
+            for (int i = 0; i < 4; i++) {
                 long trailing0_l2 = 0;
                 long trailing0_l3 = 0;
                 long trailing0_l5 = 0;
                 long loops = 10_000_000;
-                for (int n = 0; n < loops; n++)
-                {
+                for (int n = 0; n < loops; n++) {
                     long hash = rand.nextLong();
                     int index = sketch.indexOf(hash, i);
                     int tr = Integer.numberOfTrailingZeros(index);
-                    if (tr >= 2)
-                        trailing0_l2 ++;
-                    if (tr >= 3)
-                        trailing0_l3 ++;
-                    if (tr >= 5)
-                        trailing0_l5 ++;
+                    if (tr >= 2) {
+                        trailing0_l2++;
+                    }
+                    if (tr >= 3) {
+                        trailing0_l3++;
+                    }
+                    if (tr >= 5) {
+                        trailing0_l5++;
+                    }
                 }
                 assertThat("l5 / i==" + i, trailing0_l5, lessThanOrEqualTo(loops / 15));
                 assertThat("l3 / i==" + i, trailing0_l3, lessThanOrEqualTo(loops / 7));
                 assertThat("l2 / i==" + i, trailing0_l2, lessThanOrEqualTo(loops / 3));
             }
-        }
-        finally
-        {
+        } finally {
             sketch.release();
         }
     }
 
     @Test
-    public void testIncrementOnce()
-    {
+    public void testIncrementOnce() {
         FrequencySketch sketch = makeSketch(64);
-        try
-        {
+        try {
             sketch.increment(item);
             assertThat(sketch.frequency(item), is(1));
-        }
-        finally
-        {
+        } finally {
             sketch.release();
         }
     }
 
     @Test
-    public void testIncrementMax()
-    {
+    public void testIncrementMax() {
         FrequencySketch sketch = makeSketch(64);
-        try
-        {
-            for (int i = 0; i < 20; i++)
-            {
+        try {
+            for (int i = 0; i < 20; i++) {
                 sketch.increment(item);
             }
             assertThat(sketch.frequency(item), is(15));
-        }
-        finally
-        {
+        } finally {
             sketch.release();
         }
     }
 
     @Test
-    public void testIncrementDistinct()
-    {
+    public void testIncrementDistinct() {
         FrequencySketch sketch = makeSketch(64);
-        try
-        {
+        try {
             sketch.increment(item);
             sketch.increment(item + 1);
             assertThat(sketch.frequency(item), is(1));
             assertThat(sketch.frequency(item + 1), is(1));
             assertThat(sketch.frequency(item + 2), is(0));
-        }
-        finally
-        {
+        } finally {
             sketch.release();
         }
     }
 
     @Test
-    public void reset()
-    {
+    public void reset() {
         boolean reset = false;
         FrequencySketch sketch = makeSketch(64);
-        try
-        {
-            for (int i = 1; i < 20 * sketch.tableLength; i++)
-            {
+        try {
+            for (int i = 1; i < 20 * sketch.tableLength; i++) {
                 sketch.increment(i);
-                if (sketch.size != i)
-                {
+                if (sketch.size != i) {
                     reset = true;
                     break;
                 }
             }
             assertThat(reset, is(true));
             assertThat(sketch.size, lessThanOrEqualTo(sketch.sampleSize / 2));
-        }
-        finally
-        {
+        } finally {
             sketch.release();
         }
     }
 
     @Test
-    public void testHeavyHitters()
-    {
+    public void testHeavyHitters() {
         FrequencySketch sketch = makeSketch(512);
-        try
-        {
-            for (int i = 100; i < 100_000; i++)
-            {
+        try {
+            for (int i = 100; i < 100_000; i++) {
                 sketch.increment(Double.valueOf(i).hashCode());
             }
-            for (int i = 0; i < 10; i += 2)
-            {
-                for (int j = 0; j < i; j++)
-                {
+            for (int i = 0; i < 10; i += 2) {
+                for (int j = 0; j < i; j++) {
                     sketch.increment(Double.valueOf(i).hashCode());
                 }
             }
 
             // A perfect popularity count yields an array [0, 0, 2, 0, 4, 0, 6, 0, 8, 0]
             int[] popularity = new int[10];
-            for (int i = 0; i < 10; i++)
-            {
+            for (int i = 0; i < 10; i++) {
                 popularity[i] = sketch.frequency(Double.valueOf(i).hashCode());
             }
-            for (int i = 0; i < popularity.length; i++)
-            {
-                if ((i == 0) || (i == 1) || (i == 3) || (i == 5) || (i == 7) || (i == 9))
-                {
+            for (int i = 0; i < popularity.length; i++) {
+                if ((i == 0) || (i == 1) || (i == 3) || (i == 5) || (i == 7) || (i == 9)) {
                     assertThat(popularity[i], lessThanOrEqualTo(popularity[2]));
-                }
-                else if (i == 2)
-                {
+                } else if (i == 2) {
                     assertThat(popularity[2], lessThanOrEqualTo(popularity[4]));
-                }
-                else if (i == 4)
-                {
+                } else if (i == 4) {
                     assertThat(popularity[4], lessThanOrEqualTo(popularity[6]));
-                }
-                else if (i == 6)
-                {
+                } else if (i == 6) {
                     assertThat(popularity[6], lessThanOrEqualTo(popularity[8]));
                 }
             }
-        }
-        finally
-        {
+        } finally {
             sketch.release();
         }
     }
 
-    private FrequencySketch makeSketch(int capacity)
-    {
+    private FrequencySketch makeSketch(int capacity) {
         return new FrequencySketch(capacity);
     }
 }

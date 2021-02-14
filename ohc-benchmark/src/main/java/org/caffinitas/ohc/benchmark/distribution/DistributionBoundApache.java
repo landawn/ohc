@@ -20,64 +20,64 @@ package org.caffinitas.ohc.benchmark.distribution;
  * 
  */
 
-
 import org.apache.commons.math3.distribution.AbstractRealDistribution;
 
-public class DistributionBoundApache extends Distribution
-{
+public class DistributionBoundApache extends Distribution {
 
+    private static final long serialVersionUID = 1140373247868897004L;
     final AbstractRealDistribution delegate;
     final long min, max;
 
-    public DistributionBoundApache(AbstractRealDistribution delegate, long min, long max)
-    {
+    public DistributionBoundApache(AbstractRealDistribution delegate, long min, long max) {
         this.delegate = delegate;
         this.min = min;
         this.max = max;
     }
 
     @Override
-    public long next()
-    {
+    public long next() {
         return bound(min, max, delegate.sample());
     }
 
-    public double nextDouble()
-    {
+    @Override
+    public double nextDouble() {
         return boundDouble(min, max, delegate.sample());
     }
 
     @Override
-    public long inverseCumProb(double cumProb)
-    {
+    public long inverseCumProb(double cumProb) {
         return bound(min, max, delegate.inverseCumulativeProbability(cumProb));
     }
 
-    public void setSeed(long seed)
-    {
+    @Override
+    public void setSeed(long seed) {
         delegate.reseedRandomGenerator(seed);
     }
 
-    private static long bound(long min, long max, double val)
-    {
+    private static long bound(long min, long max, double val) {
         long r = (long) val;
-        if ((r >= min) & (r <= max))
+        if ((r >= min) & (r <= max)) {
             return r;
-        if (r < min)
+        }
+        if (r < min) {
             return min;
-        if (r > max)
+        }
+        if (r > max) {
             return max;
+        }
         throw new IllegalStateException();
     }
 
-    private static double boundDouble(long min, long max, double r)
-    {
-        if ((r >= min) & (r <= max))
+    private static double boundDouble(long min, long max, double r) {
+        if ((r >= min) & (r <= max)) {
             return r;
-        if (r < min)
+        }
+        if (r < min) {
             return min;
-        if (r > max)
+        }
+        if (r > max) {
             return max;
+        }
         throw new IllegalStateException();
     }
 

@@ -22,28 +22,23 @@ import org.caffinitas.ohc.HashAlgorithm;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class HasherTest
-{
+public class HasherTest {
     @Test
-    public void testMurmur3()
-    {
+    public void testMurmur3() {
         test(HashAlgorithm.MURMUR3);
     }
 
     @Test
-    public void testCRC32()
-    {
+    public void testCRC32() {
         test(HashAlgorithm.CRC32);
     }
 
     @Test
-    public void testXX()
-    {
+    public void testXX() {
         test(HashAlgorithm.XX);
     }
 
-    private void test(HashAlgorithm hash)
-    {
+    private void test(HashAlgorithm hash) {
         Random rand = new Random();
 
         byte[] buf = new byte[3211];
@@ -52,8 +47,7 @@ public class HasherTest
         Hasher hasher = Hasher.create(hash);
         long arrayVal = hasher.hash(ByteBuffer.wrap(buf));
         ByteBuffer nativeMem = Uns.allocate(buf.length + 99, true);
-        try
-        {
+        try {
             for (int i = 0; i < 99; i++)
                 nativeMem.put((byte) 0);
             nativeMem.put(buf);
@@ -62,9 +56,7 @@ public class HasherTest
             long memoryVal = hasher.hash(nativeMem);
 
             Assert.assertEquals(memoryVal, arrayVal);
-        }
-        finally
-        {
+        } finally {
             Uns.free(nativeMem);
         }
     }

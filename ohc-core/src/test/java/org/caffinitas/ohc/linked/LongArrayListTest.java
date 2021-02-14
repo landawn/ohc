@@ -15,15 +15,13 @@
  */
 package org.caffinitas.ohc.linked;
 
-import org.testng.annotations.Test;
-
 import static org.testng.Assert.assertEquals;
 
-public class LongArrayListTest
-{
+import org.testng.annotations.Test;
+
+public class LongArrayListTest {
     @Test
-    public void testLongArrayList()
-    {
+    public void testLongArrayList() {
         LongArrayList l = new LongArrayList();
 
         assertEquals(l.size(), 0);
@@ -31,14 +29,12 @@ public class LongArrayListTest
         l.add(0);
         assertEquals(l.size(), 1);
 
-        for (int i=1;i<=20;i++)
-        {
+        for (int i = 1; i <= 20; i++) {
             l.add(i);
             assertEquals(l.size(), i + 1);
         }
 
-        for (int i=0;i<=20;i++)
-        {
+        for (int i = 0; i <= 20; i++) {
             assertEquals(l.getLong(i), i);
         }
     }

@@ -20,60 +20,58 @@ package org.caffinitas.ohc.benchmark.distribution;
  * 
  */
 
-
 import org.apache.commons.math3.distribution.AbstractRealDistribution;
 
-public class DistributionOffsetApache extends Distribution
-{
+public class DistributionOffsetApache extends Distribution {
 
+    private static final long serialVersionUID = 6793303963636581769L;
     final AbstractRealDistribution delegate;
     final long min, delta;
 
-    public DistributionOffsetApache(AbstractRealDistribution delegate, long min, long max)
-    {
+    public DistributionOffsetApache(AbstractRealDistribution delegate, long min, long max) {
         this.delegate = delegate;
         this.min = min;
         this.delta = max - min;
     }
 
-    public void setSeed(long seed)
-    {
+    @Override
+    public void setSeed(long seed) {
         delegate.reseedRandomGenerator(seed);
     }
 
     @Override
-    public long next()
-    {
+    public long next() {
         return offset(min, delta, delegate.sample());
     }
 
-    public double nextDouble()
-    {
+    @Override
+    public double nextDouble() {
         return offsetDouble(min, delta, delegate.sample());
     }
 
     @Override
-    public long inverseCumProb(double cumProb)
-    {
+    public long inverseCumProb(double cumProb) {
         return offset(min, delta, delegate.inverseCumulativeProbability(cumProb));
     }
 
-    private long offset(long min, long delta, double val)
-    {
+    private long offset(long min, long delta, double val) {
         long r = (long) val;
-        if (r < 0)
+        if (r < 0) {
             r = 0;
-        if (r > delta)
+        }
+        if (r > delta) {
             r = delta;
+        }
         return min + r;
     }
 
-    private double offsetDouble(long min, long delta, double r)
-    {
-        if (r < 0)
+    private double offsetDouble(long min, long delta, double r) {
+        if (r < 0) {
             r = 0;
-        if (r > delta)
+        }
+        if (r > delta) {
             r = delta;
+        }
         return min + r;
     }
 

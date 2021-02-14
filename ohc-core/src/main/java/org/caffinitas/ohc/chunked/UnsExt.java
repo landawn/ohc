@@ -19,12 +19,11 @@ import java.nio.ByteBuffer;
 
 import sun.misc.Unsafe;
 
-abstract class UnsExt
-{
+@SuppressWarnings("restriction")
+abstract class UnsExt {
     final Unsafe unsafe;
 
-    UnsExt(Unsafe unsafe)
-    {
+    UnsExt(Unsafe unsafe) {
         this.unsafe = unsafe;
     }
 

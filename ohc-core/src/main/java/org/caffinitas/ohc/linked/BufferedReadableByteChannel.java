@@ -19,37 +19,33 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
-final class BufferedReadableByteChannel implements ReadableByteChannel
-{
+final class BufferedReadableByteChannel implements ReadableByteChannel {
     private final ReadableByteChannel delegate;
     private final long bufferAddress;
     private ByteBuffer buffer;
     private boolean closed;
 
-    BufferedReadableByteChannel(ReadableByteChannel delegate, int bufferSize) throws IOException
-    {
+    BufferedReadableByteChannel(ReadableByteChannel delegate, int bufferSize) throws IOException {
         this.delegate = delegate;
         this.bufferAddress = Uns.allocateIOException(bufferSize);
         this.buffer = Uns.directBufferFor(bufferAddress, 0L, bufferSize, false);
         this.buffer.position(bufferSize);
     }
 
-    public int read(ByteBuffer dst) throws IOException
-    {
+    @Override
+    public int read(ByteBuffer dst) throws IOException {
         int p = dst.position();
-        while (true)
-        {
+        while (true) {
             int dr = dst.remaining();
-            if (dr == 0)
+            if (dr == 0) {
                 return dst.position() - p;
+            }
 
             int br = buffer.remaining();
-            if (br == 0)
-            {
+            if (br == 0) {
                 buffer.clear();
                 int rd = delegate.read(buffer);
-                if (rd == -1)
-                {
+                if (rd == -1) {
                     rd = dst.position() - p;
                     return rd == 0 ? -1 : rd;
                 }
@@ -57,10 +53,9 @@ final class BufferedReadableByteChannel implements ReadableByteChannel
                 br = buffer.remaining();
             }
 
-            if (dr >= br)
+            if (dr >= br) {
                 dst.put(buffer);
-            else
-            {
+            } else {
                 int lim = buffer.limit();
                 buffer.limit(buffer.position() + dr);
                 dst.put(buffer);
@@ -69,21 +64,22 @@ final class BufferedReadableByteChannel implements ReadableByteChannel
         }
     }
 
-    public boolean isOpen()
-    {
+    @Override
+    public boolean isOpen() {
         return buffer != null;
     }
 
-    public void close()
-    {
+    @Override
+    public void close() {
         buffer = null;
-        if (!closed)
+        if (!closed) {
             Uns.free(bufferAddress);
+        }
         closed = true;
     }
 
-    protected void finalize() throws Throwable
-    {
+    @Override
+    protected void finalize() throws Throwable {
         close();
         super.finalize();
     }

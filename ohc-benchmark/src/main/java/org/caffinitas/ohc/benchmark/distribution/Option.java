@@ -20,26 +20,29 @@ package org.caffinitas.ohc.benchmark.distribution;
  * 
  */
 
-
 import java.util.List;
 
-abstract class Option
-{
+abstract class Option {
 
     abstract boolean accept(String param);
+
     abstract boolean happy();
+
     abstract String shortDisplay();
+
     abstract String longDisplay();
+
     abstract List<String> multiLineDisplay();
+
     abstract boolean setByUser();
 
-    public int hashCode()
-    {
+    @Override
+    public int hashCode() {
         return getClass().hashCode();
     }
 
-    public boolean equals(Object that)
-    {
+    @Override
+    public boolean equals(Object that) {
         return this.getClass() == that.getClass();
     }
 

@@ -17,57 +17,61 @@ package org.caffinitas.ohc.linked;
 
 import org.caffinitas.ohc.OHCacheBuilder;
 
-class OffHeapLinkedLRUMap extends OffHeapLinkedMap
-{
+class OffHeapLinkedLRUMap extends OffHeapLinkedMap {
     private long lruHead;
     private long lruTail;
 
     private long freeCapacity;
     private long capacity;
 
-    OffHeapLinkedLRUMap(OHCacheBuilder builder, long freeCapacity)
-    {
+    OffHeapLinkedLRUMap(OHCacheBuilder builder, long freeCapacity) {
         super(builder);
 
         this.freeCapacity = freeCapacity;
         this.capacity = freeCapacity;
     }
 
-    void addToLruAndUpdateCapacity(long hashEntryAdr)
-    {
+    @Override
+    void addToLruAndUpdateCapacity(long hashEntryAdr) {
         long h = lruHead;
         HashEntries.setLRUNext(hashEntryAdr, h);
-        if (h != 0L)
+        if (h != 0L) {
             HashEntries.setLRUPrev(h, hashEntryAdr);
+        }
         HashEntries.setLRUPrev(hashEntryAdr, 0L);
         lruHead = hashEntryAdr;
 
-        if (lruTail == 0L)
+        if (lruTail == 0L) {
             lruTail = hashEntryAdr;
+        }
 
         freeCapacity -= HashEntries.getAllocLen(hashEntryAdr);
     }
 
-    void removeFromLruAndUpdateCapacity(long hashEntryAdr)
-    {
+    @Override
+    void removeFromLruAndUpdateCapacity(long hashEntryAdr) {
         long next = HashEntries.getLRUNext(hashEntryAdr);
         long prev = HashEntries.getLRUPrev(hashEntryAdr);
 
-        if (lruHead == hashEntryAdr)
+        if (lruHead == hashEntryAdr) {
             lruHead = next;
-        if (lruTail == hashEntryAdr)
+        }
+        if (lruTail == hashEntryAdr) {
             lruTail = prev;
+        }
 
-        if (next != 0L)
+        if (next != 0L) {
             HashEntries.setLRUPrev(next, prev);
-        if (prev != 0L)
+        }
+        if (prev != 0L) {
             HashEntries.setLRUNext(prev, next);
+        }
 
         freeCapacity += HashEntries.getAllocLen(hashEntryAdr);
     }
 
-    void replaceSentinelInLruAndUpdateCapacity(long hashEntryAdr, long newHashEntryAdr, long bytes)
-    {
+    @Override
+    void replaceSentinelInLruAndUpdateCapacity(long hashEntryAdr, long newHashEntryAdr, long bytes) {
         // TODO also handle the case, that the sentinel has been evicted
 
         long next = HashEntries.getLRUNext(hashEntryAdr);
@@ -76,34 +80,39 @@ class OffHeapLinkedLRUMap extends OffHeapLinkedMap
         HashEntries.setLRUNext(newHashEntryAdr, next);
         HashEntries.setLRUPrev(newHashEntryAdr, prev);
 
-        if (lruHead == hashEntryAdr)
+        if (lruHead == hashEntryAdr) {
             lruHead = newHashEntryAdr;
-        if (lruTail == hashEntryAdr)
+        }
+        if (lruTail == hashEntryAdr) {
             lruTail = newHashEntryAdr;
+        }
 
-        if (next != 0L)
+        if (next != 0L) {
             HashEntries.setLRUPrev(next, newHashEntryAdr);
-        if (prev != 0L)
+        }
+        if (prev != 0L) {
             HashEntries.setLRUNext(prev, newHashEntryAdr);
+        }
 
         // note: only need to add bytes since this method only replaces a sentinel with the real value
         freeCapacity -= bytes;
     }
 
-    void clearLruAndCapacity()
-    {
+    @Override
+    void clearLruAndCapacity() {
         lruHead = lruTail = 0L;
 
         freeCapacity = capacity;
     }
 
-    void touch(long hashEntryAdr)
-    {
+    @Override
+    void touch(long hashEntryAdr) {
         long head = lruHead;
 
-        if (head == hashEntryAdr)
+        if (head == hashEntryAdr) {
             // short-cut - entry already at LRU head
             return;
+        }
 
         // LRU stuff
 
@@ -111,69 +120,72 @@ class OffHeapLinkedLRUMap extends OffHeapLinkedMap
         long prev = HashEntries.getAndSetLRUPrev(hashEntryAdr, 0L);
 
         long tail = lruTail;
-        if (tail == hashEntryAdr)
+        if (tail == hashEntryAdr) {
             lruTail = prev == 0L ? hashEntryAdr : prev;
-        else if (tail == 0L)
+        } else if (tail == 0L) {
             lruTail = hashEntryAdr;
+        }
 
-        if (next != 0L)
+        if (next != 0L) {
             HashEntries.setLRUPrev(next, prev);
-        if (prev != 0L)
+        }
+        if (prev != 0L) {
             HashEntries.setLRUNext(prev, next);
+        }
 
         // LRU stuff (basically an add to LRU linked list)
 
-        if (head != 0L)
+        if (head != 0L) {
             HashEntries.setLRUPrev(head, hashEntryAdr);
+        }
         lruHead = hashEntryAdr;
     }
 
-    long freeCapacity()
-    {
+    @Override
+    long freeCapacity() {
         return freeCapacity;
     }
 
-    void updateFreeCapacity(long diff)
-    {
+    @Override
+    void updateFreeCapacity(long diff) {
         boolean wasFirst = lock();
-        try
-        {
+        try {
             freeCapacity += diff;
-        }
-        finally
-        {
+        } finally {
             unlock(wasFirst);
         }
     }
 
-    LongArrayList ensureFreeSpaceForNewEntry(long bytes)
-    {
-        if (freeCapacity < bytes)
+    @Override
+    LongArrayList ensureFreeSpaceForNewEntry(long bytes) {
+        if (freeCapacity < bytes) {
             removeExpired();
+        }
 
         LongArrayList derefList = null;
-        while (freeCapacity < bytes)
-        {
+        while (freeCapacity < bytes) {
             long eldestHashAdr = removeEldest();
-            if (eldestHashAdr == 0L)
+            if (eldestHashAdr == 0L) {
                 break;
-            if (derefList == null)
+            }
+            if (derefList == null) {
                 derefList = new LongArrayList();
+            }
             derefList.add(eldestHashAdr);
         }
         return derefList;
     }
 
-    boolean hasFreeSpaceForNewEntry(long bytes)
-    {
+    @Override
+    boolean hasFreeSpaceForNewEntry(long bytes) {
         return freeCapacity >= bytes;
     }
 
-    private long removeEldest()
-    {
+    private long removeEldest() {
         long hashEntryAdr = lruTail;
-        if (hashEntryAdr == 0L)
+        if (hashEntryAdr == 0L) {
             return 0L;
+        }
 
         removeInternal(hashEntryAdr, -1L, true);
         size--;
@@ -182,24 +194,18 @@ class OffHeapLinkedLRUMap extends OffHeapLinkedMap
         return hashEntryAdr;
     }
 
-    long[] hotN(int n)
-    {
+    @Override
+    long[] hotN(int n) {
         boolean wasFirst = lock();
-        try
-        {
+        try {
             long[] r = new long[n];
             int i = 0;
-            for (long hashEntryAdr = lruHead;
-                 hashEntryAdr != 0L && i < n;
-                 hashEntryAdr = HashEntries.getLRUNext(hashEntryAdr))
-            {
+            for (long hashEntryAdr = lruHead; hashEntryAdr != 0L && i < n; hashEntryAdr = HashEntries.getLRUNext(hashEntryAdr)) {
                 r[i++] = hashEntryAdr;
                 HashEntries.reference(hashEntryAdr);
             }
             return r;
-        }
-        finally
-        {
+        } finally {
             unlock(wasFirst);
         }
     }

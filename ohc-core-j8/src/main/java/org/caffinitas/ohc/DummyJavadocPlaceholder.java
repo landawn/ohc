@@ -18,6 +18,5 @@ package org.caffinitas.ohc;
 /**
  * This is a placeholder for Javadoc to succeed since maven-central requires a javadoc artifact for everything
  */
-public class DummyJavadocPlaceholder
-{
+public class DummyJavadocPlaceholder {
 }

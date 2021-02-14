@@ -17,8 +17,7 @@ package org.caffinitas.ohc.linked;
 
 import org.caffinitas.ohc.OHCacheBuilder;
 
-final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
-{
+final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap {
     private long edenLruHead;
     private long edenLruTail;
     private long edenFreeCapacity;
@@ -35,46 +34,44 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
 
     private final double edenSize;
 
-    OffHeapLinkedWTinyLFUMap(OHCacheBuilder builder, long freeCapacity)
-    {
+    OffHeapLinkedWTinyLFUMap(OHCacheBuilder builder, long freeCapacity) {
         super(builder);
 
         edenSize = builder.getEdenSize();
-        if (edenSize <= 0d)
+        if (edenSize <= 0d) {
             throw new IllegalArgumentException("Illegal edenSize, must be > 0");
+        }
 
         updateFreeCapacity(freeCapacity);
 
         int freqSketchSize = builder.getFrequencySketchSize();
-        if (freqSketchSize <= 0)
+        if (freqSketchSize <= 0) {
             freqSketchSize = table.size();
+        }
 
         frequencySketch = new FrequencySketch(freqSketchSize);
     }
 
-    void release()
-    {
+    @Override
+    void release() {
         boolean wasFirst = lock();
-        try
-        {
+        try {
             frequencySketch.release();
 
             super.release();
-        }
-        finally
-        {
+        } finally {
             unlock(wasFirst);
         }
     }
 
-    long freeCapacity()
-    {
+    @Override
+    long freeCapacity() {
         return edenFreeCapacity + mainFreeCapacity;
     }
 
-    void updateFreeCapacity(long diff)
-    {
-        long edenPart = (long)(edenSize * diff);
+    @Override
+    void updateFreeCapacity(long diff) {
+        long edenPart = (long) (edenSize * diff);
         long mainPart = diff - edenPart;
 
         edenFreeCapacity += edenPart;
@@ -84,30 +81,30 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
 
         // capacity of probation area needs to be as big as eden because when a new entry is added, it might be
         // necessary to check all entries in the whole eden generation whether these are admitted for main generation.
-        probationCapacity = (long)(edenSize * mainCapacity);
+        probationCapacity = (long) (edenSize * mainCapacity);
     }
 
-    LongArrayList ensureFreeSpaceForNewEntry(long bytes)
-    {
+    @Override
+    LongArrayList ensureFreeSpaceForNewEntry(long bytes) {
         // enough free capacity in eden generation?
-        if (edenFreeCapacity >= bytes)
+        if (edenFreeCapacity >= bytes) {
             return null;
+        }
 
         // eden generation too small for entry?
-        if (edenCapacity < bytes)
+        if (edenCapacity < bytes) {
             return null;
+        }
 
         // need to make room in eden
 
         long candidateAdr = edenLruTail;
         long nextCandidateAdr;
 
-        if (bytes > edenFreeCapacity)
-        {
+        if (bytes > edenFreeCapacity) {
             // main generation has enough free capacity for candidate from eden, just move candidate to main generation and return
             // (note: this happens when the cache is initially empty and new entries get added)
-            if (mainLruTail == 0L || mainFreeCapacity >= bytes)
-            {
+            if (mainLruTail == 0L || mainFreeCapacity >= bytes) {
                 moveCandidateFromEdenToMain(candidateAdr);
                 return null;
             }
@@ -119,18 +116,18 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
         long victimAdr = mainLruTail;
         long nextVictimAdr;
 
-
         // TODO following code compares one entry in eden with one entry in probation (starting at the tail).
         // It feels that it is ok to do it like that - but not sure.
 
         LongArrayList derefList = null;
         long probationUsed = probationUsed();
-        for (;bytes > edenFreeCapacity && probationUsed > 0L; candidateAdr = nextCandidateAdr, victimAdr = nextVictimAdr)
-        {
-            if (candidateAdr == 0L)
+        for (; bytes > edenFreeCapacity && probationUsed > 0L; candidateAdr = nextCandidateAdr, victimAdr = nextVictimAdr) {
+            if (candidateAdr == 0L) {
                 throw new AssertionError();
-            if (victimAdr == 0L)
+            }
+            if (victimAdr == 0L) {
                 throw new AssertionError();
+            }
 
             nextCandidateAdr = HashEntries.getLRUPrev(candidateAdr);
             nextVictimAdr = HashEntries.getLRUPrev(victimAdr);
@@ -140,16 +137,13 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
 
             probationUsed -= HashEntries.getAllocLen(victimAdr);
 
-            if (admit(candidateFreq, victimFreq))
-            {
+            if (admit(candidateFreq, victimFreq)) {
                 // evict victim from main generation & move candidate to main generation
 
                 derefList = evictEntry(derefList, victimAdr);
 
                 moveCandidateFromEdenToMain(candidateAdr);
-            }
-            else
-            {
+            } else {
                 // candidate not admitted, evict it
 
                 derefList = evictEntry(derefList, candidateAdr);
@@ -159,31 +153,29 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
         return derefList;
     }
 
-    boolean hasFreeSpaceForNewEntry(long bytes)
-    {
+    @Override
+    boolean hasFreeSpaceForNewEntry(long bytes) {
         return edenFreeCapacity >= bytes;
     }
 
-    private LongArrayList evictEntry(LongArrayList derefList, long targetAdr)
-    {
+    private LongArrayList evictEntry(LongArrayList derefList, long targetAdr) {
         removeInternal(targetAdr, -1L, true);
         size--;
         evictedEntries++;
-        if (derefList == null)
+        if (derefList == null) {
             derefList = new LongArrayList();
+        }
         derefList.add(targetAdr);
         return derefList;
     }
 
-    private void moveCandidateFromEdenToMain(long candidateAdr)
-    {
+    private void moveCandidateFromEdenToMain(long candidateAdr) {
         removeFromLruAndUpdateCapacity(candidateAdr);
         HashEntries.setGeneration(candidateAdr, Util.GEN_MAIN);
         addToLruAndUpdateCapacity(candidateAdr);
     }
 
-    private long probationUsed()
-    {
+    private long probationUsed() {
         //                                          Split           MainCapacity
         //              protected                     |    probation    |
         // -------------------------------------------|-----------------|
@@ -195,11 +187,10 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
         // -->                 (mainCapacity - mainFreeCapacity) - (mainCapacity - probationCapacity)
         // -->                 mainCapacity - mainFreeCapacity - mainCapacity + probationCapacity
         // -->                 - mainFreeCapacity + probationCapacity
-        return - mainFreeCapacity + probationCapacity;
+        return -mainFreeCapacity + probationCapacity;
     }
 
-    private boolean admit(int candidateFreq, int victimFreq)
-    {
+    private boolean admit(int candidateFreq, int victimFreq) {
         if (candidateFreq > victimFreq) {
             return true;
         } else if (candidateFreq <= 5) {
@@ -213,83 +204,79 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
         return frequencySketch.tieAdmit();
     }
 
-    void addToLruAndUpdateCapacity(long hashEntryAdr)
-    {
+    @Override
+    void addToLruAndUpdateCapacity(long hashEntryAdr) {
         int gen = HashEntries.getGeneration(hashEntryAdr);
 
         long h = lruHead(gen);
         HashEntries.setLRUNext(hashEntryAdr, h);
-        if (h != 0L)
+        if (h != 0L) {
             HashEntries.setLRUPrev(h, hashEntryAdr);
+        }
         HashEntries.setLRUPrev(hashEntryAdr, 0L);
         lruHead(gen, hashEntryAdr);
 
-        if (lruTail(gen) == 0L)
+        if (lruTail(gen) == 0L) {
             lruTail(gen, hashEntryAdr);
+        }
 
         adjustFreeCapacity(gen, -HashEntries.getAllocLen(hashEntryAdr));
     }
 
-    void removeFromLruAndUpdateCapacity(long hashEntryAdr)
-    {
+    @Override
+    void removeFromLruAndUpdateCapacity(long hashEntryAdr) {
         int gen = HashEntries.getGeneration(hashEntryAdr);
 
         long next = HashEntries.getLRUNext(hashEntryAdr);
         long prev = HashEntries.getLRUPrev(hashEntryAdr);
 
-        if (lruHead(gen) == hashEntryAdr)
+        if (lruHead(gen) == hashEntryAdr) {
             lruHead(gen, next);
-        if (lruTail(gen) == hashEntryAdr)
+        }
+        if (lruTail(gen) == hashEntryAdr) {
             lruTail(gen, prev);
+        }
 
-        if (next != 0L)
+        if (next != 0L) {
             HashEntries.setLRUPrev(next, prev);
-        if (prev != 0L)
+        }
+        if (prev != 0L) {
             HashEntries.setLRUNext(prev, next);
+        }
 
         adjustFreeCapacity(gen, HashEntries.getAllocLen(hashEntryAdr));
     }
 
-    void clearLruAndCapacity()
-    {
-        edenLruHead = edenLruTail =
-        mainLruHead = mainLruTail = 0L;
+    @Override
+    void clearLruAndCapacity() {
+        edenLruHead = edenLruTail = mainLruHead = mainLruTail = 0L;
 
         edenFreeCapacity = edenCapacity;
         mainFreeCapacity = mainCapacity;
     }
 
-    long[] hotN(int n)
-    {
+    @Override
+    long[] hotN(int n) {
         boolean wasFirst = lock();
-        try
-        {
+        try {
             long[] r = new long[n];
             int i = 0;
-            for (long hashEntryAdr = mainLruHead;
-                 hashEntryAdr != 0L && i < n;
-                 hashEntryAdr = HashEntries.getLRUNext(hashEntryAdr))
-            {
+            for (long hashEntryAdr = mainLruHead; hashEntryAdr != 0L && i < n; hashEntryAdr = HashEntries.getLRUNext(hashEntryAdr)) {
                 r[i++] = hashEntryAdr;
                 HashEntries.reference(hashEntryAdr);
             }
-            for (long hashEntryAdr = edenLruHead;
-                 hashEntryAdr != 0L && i < n;
-                 hashEntryAdr = HashEntries.getLRUNext(hashEntryAdr))
-            {
+            for (long hashEntryAdr = edenLruHead; hashEntryAdr != 0L && i < n; hashEntryAdr = HashEntries.getLRUNext(hashEntryAdr)) {
                 r[i++] = hashEntryAdr;
                 HashEntries.reference(hashEntryAdr);
             }
             return r;
-        }
-        finally
-        {
+        } finally {
             unlock(wasFirst);
         }
     }
 
-    void replaceSentinelInLruAndUpdateCapacity(long hashEntryAdr, long newHashEntryAdr, long bytes)
-    {
+    @Override
+    void replaceSentinelInLruAndUpdateCapacity(long hashEntryAdr, long newHashEntryAdr, long bytes) {
         // TODO also handle the case, that the sentinel has been evicted
 
         int gen = HashEntries.getGeneration(hashEntryAdr);
@@ -302,31 +289,36 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
         HashEntries.setLRUNext(newHashEntryAdr, next);
         HashEntries.setLRUPrev(newHashEntryAdr, prev);
 
-        if (lruHead(gen) == hashEntryAdr)
+        if (lruHead(gen) == hashEntryAdr) {
             lruHead(gen, newHashEntryAdr);
-        if (lruTail(gen) == hashEntryAdr)
+        }
+        if (lruTail(gen) == hashEntryAdr) {
             lruTail(gen, newHashEntryAdr);
+        }
 
-        if (next != 0L)
+        if (next != 0L) {
             HashEntries.setLRUPrev(next, newHashEntryAdr);
-        if (prev != 0L)
+        }
+        if (prev != 0L) {
             HashEntries.setLRUNext(prev, newHashEntryAdr);
+        }
 
         // note: only need to add bytes since this method only replaces a sentinel with the real value
         adjustFreeCapacity(gen, -bytes);
     }
 
-    void touch(long hashEntryAdr)
-    {
+    @Override
+    void touch(long hashEntryAdr) {
         frequencySketch.increment(HashEntries.getHash(hashEntryAdr));
 
         int gen = HashEntries.getGeneration(hashEntryAdr);
 
         long head = lruHead(gen);
 
-        if (head == hashEntryAdr)
+        if (head == hashEntryAdr) {
             // short-cut - entry already at LRU head
             return;
+        }
 
         // LRU stuff
 
@@ -334,68 +326,78 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap
         long prev = HashEntries.getAndSetLRUPrev(hashEntryAdr, 0L);
 
         long tail = lruTail(gen);
-        if (tail == hashEntryAdr)
+        if (tail == hashEntryAdr) {
             lruTail(gen, prev == 0L ? hashEntryAdr : prev);
-        else if (tail == 0L)
+        } else if (tail == 0L) {
             lruTail(gen, hashEntryAdr);
+        }
 
-        if (next != 0L)
+        if (next != 0L) {
             HashEntries.setLRUPrev(next, prev);
-        if (prev != 0L)
+        }
+        if (prev != 0L) {
             HashEntries.setLRUNext(prev, next);
+        }
 
         // LRU stuff (basically an add to LRU linked list)
 
-        if (head != 0L)
+        if (head != 0L) {
             HashEntries.setLRUPrev(head, hashEntryAdr);
+        }
         lruHead(gen, hashEntryAdr);
 
     }
 
-    private void adjustFreeCapacity(int gen, long amount)
-    {
-        switch (gen)
-        {
-            case Util.GEN_EDEN: edenFreeCapacity += amount; break;
-            case Util.GEN_MAIN: mainFreeCapacity += amount; break;
+    private void adjustFreeCapacity(int gen, long amount) {
+        switch (gen) {
+            case Util.GEN_EDEN:
+                edenFreeCapacity += amount;
+                break;
+            case Util.GEN_MAIN:
+                mainFreeCapacity += amount;
+                break;
         }
     }
 
-    private long lruHead(int gen)
-    {
-        switch (gen)
-        {
-            case Util.GEN_EDEN: return edenLruHead;
-            case Util.GEN_MAIN: return mainLruHead;
-        }
-        return 0L;
-    }
-
-    private void lruHead(int gen, long hashEntryAdr)
-    {
-        switch (gen)
-        {
-            case Util.GEN_EDEN: edenLruHead = hashEntryAdr; break;
-            case Util.GEN_MAIN: mainLruHead = hashEntryAdr; break;
-        }
-    }
-
-    private long lruTail(int gen)
-    {
-        switch (gen)
-        {
-            case Util.GEN_EDEN: return edenLruTail;
-            case Util.GEN_MAIN: return mainLruTail;
+    private long lruHead(int gen) {
+        switch (gen) {
+            case Util.GEN_EDEN:
+                return edenLruHead;
+            case Util.GEN_MAIN:
+                return mainLruHead;
         }
         return 0L;
     }
 
-    private void lruTail(int gen, long hashEntryAdr)
-    {
-        switch (gen)
-        {
-            case Util.GEN_EDEN: edenLruTail = hashEntryAdr; break;
-            case Util.GEN_MAIN: mainLruTail = hashEntryAdr; break;
+    private void lruHead(int gen, long hashEntryAdr) {
+        switch (gen) {
+            case Util.GEN_EDEN:
+                edenLruHead = hashEntryAdr;
+                break;
+            case Util.GEN_MAIN:
+                mainLruHead = hashEntryAdr;
+                break;
+        }
+    }
+
+    private long lruTail(int gen) {
+        switch (gen) {
+            case Util.GEN_EDEN:
+                return edenLruTail;
+            case Util.GEN_MAIN:
+                return mainLruTail;
+        }
+        return 0L;
+    }
+
+    private void lruTail(int gen, long hashEntryAdr) {
+        switch (gen) {
+            case Util.GEN_EDEN:
+                edenLruTail = hashEntryAdr;
+                break;
+            case Util.GEN_MAIN:
+                mainLruTail = hashEntryAdr;
+                break;
         }
     }
 }

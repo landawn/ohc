@@ -17,15 +17,13 @@ package org.caffinitas.ohc.linked;
 
 import org.caffinitas.ohc.OHCacheBuilder;
 
-final class OffHeapLinkedPermMap extends OffHeapLinkedLRUMap
-{
-    OffHeapLinkedPermMap(OHCacheBuilder builder, long freeCapacity)
-    {
+final class OffHeapLinkedPermMap extends OffHeapLinkedLRUMap {
+    OffHeapLinkedPermMap(OHCacheBuilder builder, long freeCapacity) {
         super(builder, freeCapacity);
     }
 
-    LongArrayList ensureFreeSpaceForNewEntry(long bytes)
-    {
+    @Override
+    LongArrayList ensureFreeSpaceForNewEntry(long bytes) {
         return null;
     }
 }

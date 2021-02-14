@@ -18,11 +18,9 @@ package org.caffinitas.ohc.chunked;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class UtilTest
-{
+public class UtilTest {
     @Test
-    public void testBitNum()
-    {
+    public void testBitNum() {
         Assert.assertEquals(Util.bitNum(0), 0);
         Assert.assertEquals(Util.bitNum(1), 1);
         Assert.assertEquals(Util.bitNum(2), 2);

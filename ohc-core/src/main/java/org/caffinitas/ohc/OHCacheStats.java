@@ -19,8 +19,7 @@ import java.util.Arrays;
 
 import com.google.common.base.Objects;
 
-public final class OHCacheStats
-{
+public final class OHCacheStats {
     private final long hitCount;
     private final long missCount;
     private final long evictionCount;
@@ -37,11 +36,8 @@ public final class OHCacheStats
     private final long totalAllocated;
     private final long lruCompactions;
 
-    public OHCacheStats(long hitCount, long missCount, long evictionCount, long expireCount,
-                        long[] segmentSizes, long size, long capacity, long free, long rehashCount,
-                        long putAddCount, long putReplaceCount, long putFailCount, long removeCount,
-                        long totalAllocated, long lruCompactions)
-    {
+    public OHCacheStats(long hitCount, long missCount, long evictionCount, long expireCount, long[] segmentSizes, long size, long capacity, long free,
+            long rehashCount, long putAddCount, long putReplaceCount, long putFailCount, long removeCount, long totalAllocated, long lruCompactions) {
         this.hitCount = hitCount;
         this.missCount = missCount;
         this.evictionCount = evictionCount;
@@ -59,166 +55,178 @@ public final class OHCacheStats
         this.lruCompactions = lruCompactions;
     }
 
-    public long getCapacity()
-    {
+    public long getCapacity() {
         return capacity;
     }
 
-    public long getFree()
-    {
+    public long getFree() {
         return free;
     }
 
-    public long getRehashCount()
-    {
+    public long getRehashCount() {
         return rehashCount;
     }
 
-    public long getHitCount()
-    {
+    public long getHitCount() {
         return hitCount;
     }
 
-    public long getMissCount()
-    {
+    public long getMissCount() {
         return missCount;
     }
 
-    public long getEvictionCount()
-    {
+    public long getEvictionCount() {
         return evictionCount;
     }
 
-    public long getExpireCount()
-    {
+    public long getExpireCount() {
         return expireCount;
     }
 
-    public long[] getSegmentSizes()
-    {
+    public long[] getSegmentSizes() {
         return segmentSizes;
     }
 
-    public long getSize()
-    {
+    public long getSize() {
         return size;
     }
 
-    public long getPutAddCount()
-    {
+    public long getPutAddCount() {
         return putAddCount;
     }
 
-    public long getPutReplaceCount()
-    {
+    public long getPutReplaceCount() {
         return putReplaceCount;
     }
 
-    public long getPutFailCount()
-    {
+    public long getPutFailCount() {
         return putFailCount;
     }
 
-    public long getRemoveCount()
-    {
+    public long getRemoveCount() {
         return removeCount;
     }
 
-    public double getAverageSegmentSize()
-    {
+    public double getAverageSegmentSize() {
         return avgOf(segmentSizes);
     }
 
-    public long getMinSegmentSize()
-    {
+    public long getMinSegmentSize() {
         return minOf(segmentSizes);
     }
 
-    public long getMaxSegmentSize()
-    {
+    public long getMaxSegmentSize() {
         return maxOf(segmentSizes);
     }
 
-    public long getTotalAllocated()
-    {
+    public long getTotalAllocated() {
         return totalAllocated;
     }
 
-    public long getLruCompactions()
-    {
+    public long getLruCompactions() {
         return lruCompactions;
     }
 
-    public String toString()
-    {
+    @Override
+    @SuppressWarnings("deprecation")
+    public String toString() {
         return Objects.toStringHelper(this)
-                      .add("hitCount", hitCount)
-                      .add("missCount", missCount)
-                      .add("evictionCount", evictionCount)
-                      .add("size", size)
-                      .add("capacity", capacity)
-                      .add("free", free)
-                      .add("rehashCount", rehashCount)
-                      .add("put(add/replace/fail)", Long.toString(putAddCount)+'/'+putReplaceCount+'/'+putFailCount)
-                      .add("removeCount", removeCount)
-                      .add("segmentSizes(#/min/max/avg)", String.format("%d/%d/%d/%.2f", segmentSizes.length, getMinSegmentSize(), getMaxSegmentSize(), getAverageSegmentSize()))
-                      .add("totalAllocated", totalAllocated)
-                      .add("lruCompactions", lruCompactions)
-                      .toString();
+                .add("hitCount", hitCount)
+                .add("missCount", missCount)
+                .add("evictionCount", evictionCount)
+                .add("size", size)
+                .add("capacity", capacity)
+                .add("free", free)
+                .add("rehashCount", rehashCount)
+                .add("put(add/replace/fail)", Long.toString(putAddCount) + '/' + putReplaceCount + '/' + putFailCount)
+                .add("removeCount", removeCount)
+                .add("segmentSizes(#/min/max/avg)",
+                        String.format("%d/%d/%d/%.2f", segmentSizes.length, getMinSegmentSize(), getMaxSegmentSize(), getAverageSegmentSize()))
+                .add("totalAllocated", totalAllocated)
+                .add("lruCompactions", lruCompactions)
+                .toString();
     }
 
-    private static long maxOf(long[] arr)
-    {
+    private static long maxOf(long[] arr) {
         long r = 0;
-        for (long l : arr)
-            if (l > r)
+        for (long l : arr) {
+            if (l > r) {
                 r = l;
+            }
+        }
         return r;
     }
 
-    private static long minOf(long[] arr)
-    {
+    private static long minOf(long[] arr) {
         long r = Long.MAX_VALUE;
-        for (long l : arr)
-            if (l < r)
+        for (long l : arr) {
+            if (l < r) {
                 r = l;
+            }
+        }
         return r;
     }
 
-    private static double avgOf(long[] arr)
-    {
+    private static double avgOf(long[] arr) {
         double r = 0d;
-        for (long l : arr)
+        for (long l : arr) {
             r += l;
+        }
         return r / arr.length;
     }
 
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         OHCacheStats that = (OHCacheStats) o;
 
-        if (capacity != that.capacity) return false;
-        if (evictionCount != that.evictionCount) return false;
-        if (free != that.free) return false;
-        if (hitCount != that.hitCount) return false;
-        if (missCount != that.missCount) return false;
-        if (putAddCount != that.putAddCount) return false;
-        if (putFailCount != that.putFailCount) return false;
-        if (putReplaceCount != that.putReplaceCount) return false;
-//        if (rehashCount != that.rehashCount) return false;
-        if (removeCount != that.removeCount) return false;
-        if (size != that.size) return false;
-//        if (totalAllocated != that.totalAllocated) return false;
-        if (!Arrays.equals(segmentSizes, that.segmentSizes)) return false;
+        if (capacity != that.capacity) {
+            return false;
+        }
+        if (evictionCount != that.evictionCount) {
+            return false;
+        }
+        if (free != that.free) {
+            return false;
+        }
+        if (hitCount != that.hitCount) {
+            return false;
+        }
+        if (missCount != that.missCount) {
+            return false;
+        }
+        if (putAddCount != that.putAddCount) {
+            return false;
+        }
+        if (putFailCount != that.putFailCount) {
+            return false;
+        }
+        if (putReplaceCount != that.putReplaceCount) {
+            return false;
+        }
+        //        if (rehashCount != that.rehashCount) return false;
+        if (removeCount != that.removeCount) {
+            return false;
+        }
+        if (size != that.size) {
+            return false;
+        }
+        //        if (totalAllocated != that.totalAllocated) return false;
+        if (!Arrays.equals(segmentSizes, that.segmentSizes)) {
+            return false;
+        }
 
         return true;
     }
 
-    public int hashCode()
-    {
+    @Override
+    public int hashCode() {
         int result = (int) (hitCount ^ (hitCount >>> 32));
         result = 31 * result + (int) (missCount ^ (missCount >>> 32));
         result = 31 * result + (int) (evictionCount ^ (evictionCount >>> 32));
@@ -226,12 +234,12 @@ public final class OHCacheStats
         result = 31 * result + (int) (capacity ^ (capacity >>> 32));
         result = 31 * result + (int) (free ^ (free >>> 32));
         result = 31 * result + (int) (size ^ (size >>> 32));
-//        result = 31 * result + (int) (rehashCount ^ (rehashCount >>> 32));
+        //        result = 31 * result + (int) (rehashCount ^ (rehashCount >>> 32));
         result = 31 * result + (int) (putAddCount ^ (putAddCount >>> 32));
         result = 31 * result + (int) (putReplaceCount ^ (putReplaceCount >>> 32));
         result = 31 * result + (int) (putFailCount ^ (putFailCount >>> 32));
         result = 31 * result + (int) (removeCount ^ (removeCount >>> 32));
-//        result = 31 * result + (int) (totalAllocated ^ (totalAllocated >>> 32));
+        //        result = 31 * result + (int) (totalAllocated ^ (totalAllocated >>> 32));
         return result;
     }
 }

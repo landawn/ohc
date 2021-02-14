@@ -15,6 +15,8 @@
  */
 package org.caffinitas.ohc.benchmark;
 
+import static java.lang.Thread.sleep;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -37,7 +39,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-
 import org.caffinitas.ohc.Eviction;
 import org.caffinitas.ohc.HashAlgorithm;
 import org.caffinitas.ohc.OHCache;
@@ -45,10 +46,7 @@ import org.caffinitas.ohc.OHCacheBuilder;
 import org.caffinitas.ohc.benchmark.distribution.DistributionFactory;
 import org.caffinitas.ohc.benchmark.distribution.OptionDistribution;
 
-import static java.lang.Thread.sleep;
-
-public final class BenchmarkOHC
-{
+public final class BenchmarkOHC {
     public static final String THREADS = "t";
     public static final String CAPACITY = "cap";
     public static final String DURATION = "d";
@@ -75,13 +73,11 @@ public final class BenchmarkOHC
     public static final String DEFAULT_KEY_DIST = "uniform(1..10000)";
     public static final int ONE_MB = 1024 * 1024;
 
-    public static void main(String[] args) throws Exception
-    {
+    public static void main(String[] args) throws Exception {
         Locale.setDefault(Locale.ENGLISH);
         Locale.setDefault(Locale.Category.FORMAT, Locale.ENGLISH);
 
-        try
-        {
+        try {
             CommandLine cmd = parseArguments(args);
 
             String[] warmUp = cmd.getOptionValue(WARM_UP, "15,5").split(",");
@@ -90,10 +86,11 @@ public final class BenchmarkOHC
 
             int duration = Integer.parseInt(cmd.getOptionValue(DURATION, "60"));
             int cores = Runtime.getRuntime().availableProcessors();
-            if (cores >= 8)
+            if (cores >= 8) {
                 cores -= 2;
-            else if (cores > 2)
+            } else if (cores > 2) {
                 cores--;
+            }
             int threads = Integer.parseInt(cmd.getOptionValue(THREADS, Integer.toString(cores)));
             long capacity = Long.parseLong(cmd.getOptionValue(CAPACITY, "" + (1024 * 1024 * 1024)));
             int hashTableSize = Integer.parseInt(cmd.getOptionValue(HASH_TABLE_SIZE, "0"));
@@ -106,7 +103,7 @@ public final class BenchmarkOHC
             int maxEntrySize = Integer.parseInt(cmd.getOptionValue(MAX_ENTRY_SIZE, "-1"));
             boolean unlocked = Boolean.parseBoolean(cmd.getOptionValue(UNLOCKED, "false"));
             HashAlgorithm hashMode = HashAlgorithm.valueOf(cmd.getOptionValue(HASH_MODE, "MURMUR3"));
-            Eviction eviction = Eviction.valueOf(cmd.getOptionValue(EVICTION, "lru"));
+            Eviction eviction = Eviction.valueOf(cmd.getOptionValue(EVICTION, "LRU"));
 
             boolean bucketHistogram = Boolean.parseBoolean(cmd.getOptionValue(BUCKET_HISTOGRAM, "false"));
 
@@ -120,53 +117,53 @@ public final class BenchmarkOHC
             DistributionFactory readKeyDist = OptionDistribution.get(readKeyDistStr);
             DistributionFactory writeKeyDist = OptionDistribution.get(writeKeyDistStr);
             DistributionFactory valueSizeDist = OptionDistribution.get(valueSizeDistStr);
-            for (int i = 0; i < threads; i++)
-            {
-                drivers[i] = new Driver(readKeyDist.get(), writeKeyDist.get(), valueSizeDist.get(),
-                                        readWriteRatio, rnd.nextLong());
+            for (int i = 0; i < threads; i++) {
+                drivers[i] = new Driver(readKeyDist.get(), writeKeyDist.get(), valueSizeDist.get(), readWriteRatio, rnd.nextLong());
             }
 
             printMessage("Initializing OHC cache...");
-            OHCacheBuilder<Long, byte[]> builder = OHCacheBuilder.<Long, byte[]>newBuilder()
-                                                   .keySerializer(keyLen <= 0 ? BenchmarkUtils.longSerializer : new BenchmarkUtils.KeySerializer(keyLen))
-                                                   .valueSerializer(BenchmarkUtils.serializer)
-                                                   .capacity(capacity);
-            if (cmd.hasOption(LOAD_FACTOR))
+            OHCacheBuilder<Long, byte[]> builder = OHCacheBuilder.<Long, byte[]> newBuilder()
+                    .keySerializer(keyLen <= 0 ? BenchmarkUtils.longSerializer : new BenchmarkUtils.KeySerializer(keyLen))
+                    .valueSerializer(BenchmarkUtils.serializer)
+                    .capacity(capacity);
+            if (cmd.hasOption(LOAD_FACTOR)) {
                 builder.loadFactor(loadFactor);
-            if (cmd.hasOption(SEGMENT_COUNT))
+            }
+            if (cmd.hasOption(SEGMENT_COUNT)) {
                 builder.segmentCount(segmentCount);
-            if (cmd.hasOption(HASH_TABLE_SIZE))
+            }
+            if (cmd.hasOption(HASH_TABLE_SIZE)) {
                 builder.hashTableSize(hashTableSize);
-            if (cmd.hasOption(CHUNK_SIZE))
+            }
+            if (cmd.hasOption(CHUNK_SIZE)) {
                 builder.chunkSize(chunkSize);
-            if (cmd.hasOption(MAX_ENTRY_SIZE))
+            }
+            if (cmd.hasOption(MAX_ENTRY_SIZE)) {
                 builder.maxEntrySize(maxEntrySize);
-            if (cmd.hasOption(UNLOCKED))
+            }
+            if (cmd.hasOption(UNLOCKED)) {
                 builder.unlocked(unlocked);
-            if (cmd.hasOption(HASH_MODE))
+            }
+            if (cmd.hasOption(HASH_MODE)) {
                 builder.hashMode(hashMode);
-            if (cmd.hasOption(FIXED_KEY_SIZE))
+            }
+            if (cmd.hasOption(FIXED_KEY_SIZE)) {
                 builder.fixedEntrySize(fixedKeySize, fixedValueSize);
-            if (cmd.hasOption(EVICTION))
+            }
+            if (cmd.hasOption(EVICTION)) {
                 builder.eviction(eviction);
+            }
 
             Shared.cache = builder.build();
 
-            printMessage("Cache configuration: instance       : %s%n" +
-                         "                     hash-table-size: %d%n" +
-                         "                     load-factor    : %.3f%n" +
-                         "                     segments       : %d%n" +
-                         "                     capacity       : %d%n",
-                         Shared.cache,
-                         Shared.cache.hashTableSizes()[0],
-                         Shared.cache.loadFactor(),
-                         Shared.cache.segments(),
-                         Shared.cache.capacity());
+            printMessage(
+                    "Cache configuration: instance       : %s%n" + "                     hash-table-size: %d%n" + "                     load-factor    : %.3f%n"
+                            + "                     segments       : %d%n" + "                     capacity       : %d%n",
+                    Shared.cache, Shared.cache.hashTableSizes()[0], Shared.cache.loadFactor(), Shared.cache.segments(), Shared.cache.capacity());
 
             String csvFileName = cmd.getOptionValue(CSV, null);
             PrintStream csv = null;
-            if (csvFileName != null)
-            {
+            if (csvFileName != null) {
                 File csvFile = new File(csvFileName);
                 csv = new PrintStream(new FileOutputStream(csvFile));
                 csv.println("# OHC benchmark - http://github.com/snazy/ohc");
@@ -194,60 +191,51 @@ public final class BenchmarkOHC
                 csv.printf("# started at %s%n", new Date());
                 Properties props = System.getProperties();
                 csv.printf("# java.version:             %s%n", props.get("java.version"));
-                for (Map.Entry<Object, Object> e : props.entrySet())
-                {
+                for (Map.Entry<Object, Object> e : props.entrySet()) {
                     String k = (String) e.getKey();
-                    if (k.startsWith("org.caffinitas.ohc."))
+                    if (k.startsWith("org.caffinitas.ohc.")) {
                         csv.printf("# %s: %s%n", k, e.getValue());
+                    }
                 }
                 csv.printf("# number of cores: %d%n", Runtime.getRuntime().availableProcessors());
                 csv.println("# ");
-                csv.println("\"runtime\";" +
-                            "\"r_count\";" +
-                            "\"r_oneMinuteRate\";\"r_fiveMinuteRate\";\"r_fifteenMinuteRate\";\"r_meanRate\";" +
-                            "\"r_snapMin\";\"r_snapMax\";\"r_snapMean\";\"r_snapStdDev\";" +
-                            "\"r_snap75\";\"r_snap95\";\"r_snap98\";\"r_snap99\";\"r_snap999\";\"r_snapMedian\";" +
-                            "\"w_count\";" +
-                            "\"w_oneMinuteRate\";\"w_fiveMinuteRate\";\"w_fifteenMinuteRate\";\"w_meanRate\";" +
-                            "\"w_snapMin\";\"w_snapMax\";\"w_snapMean\";\"w_snapStdDev\";" +
-                            "\"w_snap75\";\"w_snap95\";\"w_snap98\";\"w_snap99\";\"w_snap999\";\"w_snapMedian\"");
+                csv.println("\"runtime\";" + "\"r_count\";" + "\"r_oneMinuteRate\";\"r_fiveMinuteRate\";\"r_fifteenMinuteRate\";\"r_meanRate\";"
+                        + "\"r_snapMin\";\"r_snapMax\";\"r_snapMean\";\"r_snapStdDev\";"
+                        + "\"r_snap75\";\"r_snap95\";\"r_snap98\";\"r_snap99\";\"r_snap999\";\"r_snapMedian\";" + "\"w_count\";"
+                        + "\"w_oneMinuteRate\";\"w_fiveMinuteRate\";\"w_fifteenMinuteRate\";\"w_meanRate\";"
+                        + "\"w_snapMin\";\"w_snapMax\";\"w_snapMean\";\"w_snapStdDev\";"
+                        + "\"w_snap75\";\"w_snap95\";\"w_snap98\";\"w_snap99\";\"w_snap999\";\"w_snapMedian\"");
             }
 
-            printMessage("Starting benchmark with%n" +
-                         "   threads     : %d%n" +
-                         "   warm-up-secs: %d%n" +
-                         "   idle-secs   : %d%n" +
-                         "   runtime-secs: %d%n",
-                         threads, warmUpSecs, coldSleepSecs, duration);
+            printMessage("Starting benchmark with%n" + "   threads     : %d%n" + "   warm-up-secs: %d%n" + "   idle-secs   : %d%n" + "   runtime-secs: %d%n",
+                    threads, warmUpSecs, coldSleepSecs, duration);
 
-            ThreadPoolExecutor main = new ThreadPoolExecutor(threads, threads, coldSleepSecs + 1, TimeUnit.SECONDS,
-                                                             new LinkedBlockingQueue<Runnable>(), new ThreadFactory()
-            {
-                volatile int threadNo;
+            ThreadPoolExecutor main = new ThreadPoolExecutor(threads, threads, coldSleepSecs + 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+                    new ThreadFactory() {
+                        volatile int threadNo;
 
-                public Thread newThread(Runnable r)
-                {
-                    return new Thread(r, "driver-main-" + threadNo++);
-                }
-            });
+                        @Override
+                        public Thread newThread(Runnable r) {
+                            return new Thread(r, "driver-main-" + threadNo++);
+                        }
+                    });
             main.prestartAllCoreThreads();
 
             // warm up
 
-            if (warmUpSecs > 0)
-            {
+            if (warmUpSecs > 0) {
                 printMessage("Start warm-up...");
                 runFor(warmUpSecs, main, drivers, bucketHistogram, csv);
                 printMessage("");
                 logMemoryUse();
 
-                if (csv != null)
+                if (csv != null) {
                     csv.println("# warm up complete");
+                }
             }
             // cold sleep
 
-            if (coldSleepSecs > 0)
-            {
+            if (coldSleepSecs > 0) {
                 printMessage("Warm up complete, sleep for %d seconds...", coldSleepSecs);
                 Thread.sleep(coldSleepSecs * 1000L);
             }
@@ -259,38 +247,37 @@ public final class BenchmarkOHC
             printMessage("");
             logMemoryUse();
 
-            if (csv != null)
+            if (csv != null) {
                 csv.println("# benchmark complete");
+            }
 
             // finish
 
-            if (csv != null)
+            if (csv != null) {
                 csv.close();
+            }
 
             System.exit(0);
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             t.printStackTrace();
             System.exit(1);
         }
     }
 
     private static void runFor(int duration, ExecutorService main, Driver[] drivers, boolean bucketHistogram, PrintStream csv)
-    throws InterruptedException, ExecutionException
-    {
+            throws InterruptedException, ExecutionException {
 
         printMessage("%s: Running for %d seconds...", new Date(), duration);
 
         // clear all statistics, timers, etc
         Shared.clearStats();
-        for (Driver driver : drivers)
+        for (Driver driver : drivers) {
             driver.clearStats();
+        }
 
         long endAt = System.currentTimeMillis() + duration * 1000L;
 
-        for (Driver driver : drivers)
-        {
+        for (Driver driver : drivers) {
             driver.endAt = endAt;
             driver.future = main.submit(driver);
         }
@@ -300,19 +287,17 @@ public final class BenchmarkOHC
         long nextMerge = System.currentTimeMillis() + mergeInterval;
         long nextStats = System.currentTimeMillis() + statsInterval;
 
-        while (System.currentTimeMillis() < endAt)
-        {
-            if (Shared.fatal.get())
-            {
+        while (System.currentTimeMillis() < endAt) {
+            if (Shared.fatal.get()) {
                 System.err.println("Unhandled exception caught - exiting");
                 System.exit(1);
             }
 
-            if (nextMerge <= System.currentTimeMillis())
+            if (nextMerge <= System.currentTimeMillis()) {
                 mergeTimers(drivers);
+            }
 
-            if (nextStats <= System.currentTimeMillis())
-            {
+            if (nextStats <= System.currentTimeMillis()) {
                 Shared.printStats("At " + new Date(), bucketHistogram, csv);
                 nextStats += statsInterval;
             }
@@ -323,26 +308,23 @@ public final class BenchmarkOHC
         printMessage("%s: Time over ... waiting for tasks to complete...", new Date());
         mergeTimers(drivers);
 
-        for (Driver driver : drivers)
+        for (Driver driver : drivers) {
             driver.future.get();
+        }
 
         mergeTimers(drivers);
         Shared.printStats("Final", bucketHistogram, csv);
     }
 
-    private static void mergeTimers(Driver[] drivers)
-    {
-        for (Driver driver : drivers)
-        {
-            for (int i = 0; i < Shared.timers.length; i++)
-            {
+    private static void mergeTimers(Driver[] drivers) {
+        for (Driver driver : drivers) {
+            for (int i = 0; i < Shared.timers.length; i++) {
                 driver.timers[i].mergeTo(Shared.timers[i]);
             }
         }
     }
 
-    private static CommandLine parseArguments(String[] args) throws ParseException
-    {
+    private static CommandLine parseArguments(String[] args) throws ParseException {
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
         options.addOption("h", false, "help, print this command");
@@ -378,12 +360,12 @@ public final class BenchmarkOHC
         options.addOption(CSV, true, "CSV stats output file");
 
         CommandLine cmd = parser.parse(options, args);
-        if (cmd.hasOption("h"))
-        {
+        if (cmd.hasOption("h")) {
             HelpFormatter formatter = new HelpFormatter();
             String help = "";
-            for (String s : OptionDistribution.help())
+            for (String s : OptionDistribution.help()) {
                 help = help + '\n' + s;
+            }
             formatter.printHelp(160, "BenchmarkOHC", null, options, help);
             System.exit(0);
         }
@@ -391,33 +373,28 @@ public final class BenchmarkOHC
         return cmd;
     }
 
-    private static void logMemoryUse() throws Exception
-    {
+    private static void logMemoryUse() throws Exception {
         OHCache<Long, byte[]> cache = Shared.cache;
         sleep(100);
-        printMessage("Memory consumed: %s / %s, size %d%n" +
-                     "          stats: %s",
-                     byteCountToDisplaySize(cache.memUsed()),
-                     byteCountToDisplaySize(cache.capacity()),
-                     cache.size(),
-                     cache.stats());
+        printMessage("Memory consumed: %s / %s, size %d%n" + "          stats: %s", byteCountToDisplaySize(cache.memUsed()),
+                byteCountToDisplaySize(cache.capacity()), cache.size(), cache.stats());
         printMessage("");
         printMessage("VM total:%s", byteCountToDisplaySize(Runtime.getRuntime().totalMemory()));
         printMessage("VM free:%s", byteCountToDisplaySize(Runtime.getRuntime().freeMemory()));
         printMessage("Cache stats:%s", cache.stats());
     }
 
-    private static String byteCountToDisplaySize(long l)
-    {
-        if (l > ONE_MB)
+    private static String byteCountToDisplaySize(long l) {
+        if (l > ONE_MB) {
             return Long.toString(l / ONE_MB) + " MB";
-        if (l > 1024)
+        }
+        if (l > 1024) {
             return Long.toString(l / 1024) + " kB";
+        }
         return Long.toString(l);
     }
 
-    public static void printMessage(String format, Object... objects)
-    {
+    public static void printMessage(String format, Object... objects) {
         System.out.println(String.format(format, objects));
     }
 }

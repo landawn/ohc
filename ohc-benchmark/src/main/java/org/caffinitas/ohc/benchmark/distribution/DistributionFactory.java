@@ -20,11 +20,9 @@ package org.caffinitas.ohc.benchmark.distribution;
  * 
  */
 
-
 import java.io.Serializable;
 
-public interface DistributionFactory extends Serializable
-{
+public interface DistributionFactory extends Serializable {
 
     Distribution get();
 
