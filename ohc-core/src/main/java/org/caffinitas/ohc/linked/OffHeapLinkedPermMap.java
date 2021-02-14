@@ -18,7 +18,7 @@ package org.caffinitas.ohc.linked;
 import org.caffinitas.ohc.OHCacheBuilder;
 
 final class OffHeapLinkedPermMap extends OffHeapLinkedLRUMap {
-    OffHeapLinkedPermMap(OHCacheBuilder builder, long freeCapacity) {
+    OffHeapLinkedPermMap(OHCacheBuilder<?, ?> builder, long freeCapacity) {
         super(builder, freeCapacity);
     }
 

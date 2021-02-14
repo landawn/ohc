@@ -17,6 +17,7 @@ package org.caffinitas.ohc.linked;
 
 import sun.misc.Unsafe;
 
+@SuppressWarnings("restriction")
 abstract class UnsExt {
     final Unsafe unsafe;
 

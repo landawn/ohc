@@ -79,7 +79,7 @@ final class OffHeapChunkedMap {
 
     private final ByteBuffer memory;
 
-    OffHeapChunkedMap(OHCacheBuilder builder, long freeCapacity, long chunkSize) {
+    OffHeapChunkedMap(OHCacheBuilder<?, ?> builder, long freeCapacity, long chunkSize) {
         this.throwOOME = builder.isThrowOOME();
 
         this.ticker = builder.getTicker();

@@ -24,7 +24,7 @@ class OffHeapLinkedLRUMap extends OffHeapLinkedMap {
     private long freeCapacity;
     private long capacity;
 
-    OffHeapLinkedLRUMap(OHCacheBuilder builder, long freeCapacity) {
+    OffHeapLinkedLRUMap(OHCacheBuilder<?, ?> builder, long freeCapacity) {
         super(builder);
 
         this.freeCapacity = freeCapacity;

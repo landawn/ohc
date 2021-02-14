@@ -60,7 +60,7 @@ abstract class OffHeapLinkedMap {
         }
     };
 
-    OffHeapLinkedMap(OHCacheBuilder builder) {
+    OffHeapLinkedMap(OHCacheBuilder<?, ?> builder) {
         this.throwOOME = builder.isThrowOOME();
 
         this.ticker = builder.getTicker();

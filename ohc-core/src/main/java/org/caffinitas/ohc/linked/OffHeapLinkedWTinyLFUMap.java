@@ -34,7 +34,7 @@ final class OffHeapLinkedWTinyLFUMap extends OffHeapLinkedMap {
 
     private final double edenSize;
 
-    OffHeapLinkedWTinyLFUMap(OHCacheBuilder builder, long freeCapacity) {
+    OffHeapLinkedWTinyLFUMap(OHCacheBuilder<?, ?> builder, long freeCapacity) {
         super(builder);
 
         edenSize = builder.getEdenSize();
